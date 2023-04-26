@@ -1583,7 +1583,7 @@ show ip ospf rib    // rib = routing information base.
 #### PAT
 - Port Address Translation (PAT)
 	- Translating IP addesses from Private to Public while minimizing Public IP usage.
-	- attaches port numbers to few IPs to make them unique. In turn minimizing the number of IPs needed. also allows translation to attach a private IP to the IP & port number for communication.
+	- attaches port numbers to one public IP to make the instance unique. In turn minimizing the number of IPs needed for the entire internet. also allows translation to attach a private IP to the IP & port number for communication.
 
 ### BGP
 - exterior Gateway Protocol
@@ -1605,7 +1605,7 @@ show ip ospf rib    // rib = routing information base.
 	- 64,496 - 64,511: Reserved to use in documentation
 	- 64,512 - 65,534: Private AS numbers
 	- 65,535: Reserved
-- There are 6 different areas in the world that will run a curtain range fo these AS numbers. You can find out the area of the world this AS is being used just by referencing this number.
+- There are 6 different areas in the world that will run a curtain range of these AS numbers. You can find out the area of the world this AS is being used just by referencing this number.
 
 ### BGP Table
 - List of "***PREFIXES***" known by BGP
@@ -1619,7 +1619,7 @@ show ip ospf rib    // rib = routing information base.
 ### NETWORK STATEMENTS
 - Must match an EXACT prefix
 - add/inject routes to the BGP table from Routing table
-- Doesn't interfere with neighbors like IGPs
+- Doesn't interfere with neighbors like iBGPs
 - NO wildcard logic (subnet mask syntax)
 - network commands work differently in BGP compared to ospf and eigrp
 	- It specifies what network to announce.
@@ -1629,9 +1629,9 @@ show ip ospf rib    // rib = routing information base.
 	2. Redistribution
 
 ### ADVERTISE SUMMARY NETWORKS
-- ##### Exact prefixes must exit in routing table
+- ##### Exact prefixes must exist in routing table
 	- use a null route
-		- null route are "fake" routes that we use to add summerized networks to our routing table for BGP
+		- null route is a "fake" route that we use to add summarized networks to our routing table for BGP  to ensure that the exact prefix is in the routing table.
 	- NULL route
 		- Route to nowhere
 		- Packets matching this route will be dropped
@@ -1684,19 +1684,19 @@ redistribute bgp 50
 ```
 
 ### eBPG vs. iBGP
-- External BGP (eBGP)
-	- Outside the same AS -> different network to different network
-	- BGP peering between routers in different AS
-	- Admin Distance = 20
-- Internat BGP (iBGP)
-	- inside same AS -> working inside the same network
-	- BGP peering between routers in same AS
-	- Admin Distance = 200
-		- Not trusted nearly as much as eBGP
-		- will opt for eigrp or ospf before opting in on iBGP
-	- Full mesh requirments
-		- each router has a wire going to each router.
-		- full mesh -> also known as split horizon
+- External BGP (eBGP)  
+    - Outside the same AS -> different network to different network  
+    - BGP peering between routers in different AS  
+    - Admin Distance = 20
+
+- Internal BGP (iBGP)  
+    - inside same AS -> working inside the same network  
+    - BGP peering between routers in the same AS  
+    - Admin Distance = 200  
+        - Not trusted nearly as much as eBGP  
+        - will opt for eigrp or ospf before opting in on iBGP  
+    - Full mesh requirements        - each router has a wire going to each router.  
+        - full mesh -> "split horizon rule" requires a full mesh
 
 ### CONFIGURATIONS:
 

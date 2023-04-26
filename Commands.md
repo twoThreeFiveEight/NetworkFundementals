@@ -1,9 +1,9 @@
 
 ## Sections:
 ----
-Basic:            [FindThings](#findthings) | [Modes](#modes) | [TroubleShoot](#troubleshoot) | [Section](#section)
+Basic:            [FindThings](#findthings) | [Modes](#modes) | [TroubleShoot](#troubleshoot) | [Section](#section) | [InterfaceRanges](#interfaceranges)
 
-Devices:        [InitialConfig](#initialConfig) | [SwitchConfig](#switchconfig) | [L3 Switch](#l3%20switch) | [Router](#router)
+Devices:        [InitialConfig](#initialConfig) | [SwitchConfig](#switchconfig) | [L3 Switch](#l3%20switch) | [Router](#router) 
 
 Protocols:     [EIGRP](#eigrp) | [OSPF](#ospf) | [BGP](#bgp) | [NAT/PAT](#nat/pat) |
 
@@ -75,6 +75,14 @@ show run | section nat
 
 ```
 
+### InterfaceRanges
+-----
+
+```c
+// If you want to configure a range of interfaces you must use the RANGE keyword
+interface range g0/0-4
+```
+
 ## InitialConfig
 ----
 [back to top](#sections)
@@ -96,7 +104,7 @@ login local
 ## SwitchConfig
 -----
 ##### ^
-Sections: [VLAN](#vlan) | [SVI](#svi) | [Trunk](#trunk) | [Access](#access)
+Sections: [VLAN](#vlan) | [SVI](#svi) | [Trunk](#trunk) | [Access](#access) | [Port Channel](#port%20channel)
 
 ##### VLAN
 ----
@@ -178,6 +186,31 @@ shut
 no shut
 ```
 
+
+### Port Channel
+----
+```c
+// PORT CHANNEL
+// Create Trunk first. NOTE THE RANGE USE
+interface range g0/1-2
+description toWLS_01_WLS02
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk allowed vlan 90,3290
+channel-group 1 mode active  // This attaches the interfaces to the below channel conf
+shut
+no shut
+
+// PORT 1 CHANNEL Creation
+interface port-channel1     // This is new syntax
+description toWLS_01_WLS02
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk allowed vlan 90,3290
+channel-group 1 mode active 
+shut
+no shut
+```
 
 ## L3 Switch
 -----
@@ -360,7 +393,7 @@ show run | sec bgp
 // Must have "soft-reconfiguration inbound" set for peer set for peer indie router bgp // 2XX conf.
 // This command stores all unfiltered routes from neighbor in seperate database
 router bgp XXX 
-neighbor x.x.x.x soft-reconfiguration inbound
+neighbor <next hop IP> soft-reconfiguration inbound
 
 // To view routes recieved from neighbor:
 show ip bgp neighbor [x.x.x.x] received-routes

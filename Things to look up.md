@@ -1,6 +1,6 @@
 - Packet flow -> You need to know exactly what a packet is happening at each hop. DEEEEEEEP understanding about what the packet looks like entering and exiting each device.
 
-### ARP protocol (G-ARP)
+### [] ARP protocol (G-ARP)
 1. ARP request
 
 ## What is Default route? when is it important? Do we need to add them explicitly to our static routes?
@@ -34,3 +34,8 @@
 ### Death by power point -> ted talk
 
 ### PORT CHANNEL & HSRP -> SCENARIO 5
+
+## DHCP
+https://www.pynetlabs.com/what-is-dhcp/
+
+https://networkinwireshark.wordpress.com/tag/dora/
