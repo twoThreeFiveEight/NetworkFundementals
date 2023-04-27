@@ -7,7 +7,7 @@
 [Lecture6](#lecture6) -> EIGRP
 [Lecture7](#lecture7) -> OSPF
 [Lecture8](#lecture8) -> BGP/PAT
-[Lecture9](#lecture9) ->
+[Lecture9](#lecture9) -> Redundancy
 [Lecture10](#lecture10) ->
 
 
@@ -1838,6 +1838,258 @@ show ip nat statistics
 # Lecture9
 ----
 [back to top](#sections)
+
+### SUBJECT: Redundancy
+
+#### TEST -> where does IP helper go -> In the default gateway 
+
+##### Summary
+- Port-channels
+- HSRP
+- DHCP
+
+### Port Channels (aka Etherchannel)
+- Purpose 
+	- Bindle many physical linked into one logical link
+		- ##### port channel bundles physical links into a channel-group to create a single logical link that provides the aggregate bandwidth.
+	- Provide link redundancy 
+	- Increases bandwidth
+		- It does not increase speed
+		- speed cannot exceed the capabilities of a single link
+- STP sees port-channel as single logical link
+- Max. number of bindled ports = 8  (typically)
+- Speed cannot exceed max speed of single link
+- "**Etherchannel**" aggregate the traffic accross all available active ports in the channel 
+
+### Bundling ports
+- Manual
+	- Mode "on"
+	- Forces port into etherchannel (risk of broadcast storms)
+- Dynamic
+	- Link Aggregation Control Protocol (LACP)
+		- A protocol for auto-negotiation and maintaining LAG
+	- Dynamically negotiates etherchannel
+	- LACP mode "active"
+		- Actively initiates negotiation
+	- LACP mode "passive"
+		- Only responds to negotiation
+
+### Port-Channel Configuration Overview
+- Configure the logical port-channel
+- Configure the physical interfaces
+	- Bind the interfaces to the port-channel
+
+### Port-Channel CONFIGURATIONS:
+
+#### TEST: `channel-group <##(arbitrary)> mode <active/passive>` is the actual command that binds the group to the interface
+
+
+##### CONFIGURATION:
+Set up the local port-channel
+```c
+// setting up the interface 
+interface port-channel <g0/1>
+switchport trunk encapsulation dot1q
+switchport mode trunk 
+switchport trunk allowed vlan <##,##>
+// channel-goup <some arbitrary number normally 1> mode <LACP mode -> active/passive>
+// This command is what actually binds that group
+channel-group <##(arbitrary)> mode <active/passive>
+
+interface port-channel <XX>
+switchport trunk encapsulation dot1q
+switchport mode trunk 
+switchport trunk allowed vlan <##,##>
+// channel-goup <some arbitrary number normally 1> mode <LACP mode -> active/passive>
+// This command is what actually binds that group
+channel-group <##(arbitrary)> mode <active/passive>
+```
+
+##### VERIFICATIONS:
+To verify the port-channel status: (JUST CHEKS FOR UP UP STATE)
+```c
+show ip interface brief
+```
+
+To list the stat of each individual member: (THIS WILL BE MOST USED)
+```c
+show etherchannel summary
+```
+
+### First Hop Redundancy Protocols
+- ##### THESE PROTOCOLS ARE ONLY NEEDED WHERE THERE ARE DEFUALT GATEWAYS
+- Type of protocol, not a specific protocol
+- ###### Provides gateway/next-hop redundancy
+- ##### GATEWAY REDUNDANCY
+- First hop Redundancy Protocols:
+	- HSRP = Hot Standby Routing Protocol -> Cisco
+	- VRRP = Virtual Router Redundancy Protcol -> open source
+	- GLBP = Gateway Load Balancing Protocol - Cisco
+	- VPC = Vitrual Port Channel -> Nexus
+	- There are others but are uncommon
+
+NOTE: 
+both switches are sending signals to each other every 3 seconds. If the timer rund out and a signal is lost from the master switch the slave will take the position as the master and send out a "***Gratuitous ARP signal***" which updates the MAC address tables with the new port interface to send traffic through. Note the Mac address for the switches are made into one virtual MAC called "***vMAC***" So when the switch from master to slave is made the only change to the MAC address table is the port number but the Table maintains the same vMAC
+[picture about ralationship between the master switch and the slave]
+[difference between HSRP and VRRP (redundancy protocols)]
+
+### Types of First Hop Redundancy Protocols
+##### Hot Standby Router Protocol
+- Purpose
+	- Provide gateway redundancy
+	- Allow traffiic to clow in the event of a device/ link failure
+- Cisco propriety
+- Doesnt modify the routing table
+- VIPS are used in HSRP -> in configs the VIPS is when we are writting the "***Standby Commands***"
+
+- Virtual IP Address (VIP)
+	- IP address for HSRP
+	- must be in the same subnet
+	- Sometimes called Standby IP
+
+- Standby group
+	- Logical group of routers participating in a HSRP process
+	- 0 - 255
+	- standby version 2
+		- 0 - 4094
+	- ***MUST MATCH ON ALL DEVICES***
+
+- Priority ->TEST -> What determines master and slave relationships
+	- ***Higher wins
+	- Cisco default 100
+- Preempt
+	- Allow a higher priority router to return to active
+	- ONLY PUT THIS COMMAND ON THE HIGHER PRIORITY ROUTER -> MASTER ROUTER.
+- Preempt Delay
+	- Timer before preemption occurs
+	- You can use this so the switch from slave to master only occurs if the new master router is up and "***Healthy***" for 20-30 minutes. This makes sure that if there is a issue with one routers it doesnt keep switching back and forth unless the router had proved up and healthy for X amount of time.
+
+- Virtual MAC Address (vMAC)
+	- Virtual MAC associated with VIP
+	- Active HSRP router will reply to ARPs with this
+
+### HSRP CONFIGURATIONS:
+Switch 1 SVI
+```c
+
+// Master L3 switch/router
+interface vlan <XX>
+ip address <vlan IP> <subnet mask>
+standby version 2    // 2 is the most common
+standby <X> ip <virtual ip (VIP)>
+standby <X> priority <higher the most priority>
+standby <X> preempt  // This is our master switch and should have a higher priority
+
+// slave L3 switch/router
+interface vlan <XX>
+ip address <vlan IP> <subnet mask>
+standby version 2    // 2 is the most common
+standby <X> ip <virtual ip (VIP)>
+standby <X> priority <Needs to be a lower priority>
+// NO PREEMPT ON SLAVE
+
+```
+
+##### HSRP Verification:
+To list all HSRP groups
+```c 
+// will show "P" if preempt -> should only be on higher priority
+show standby brief   // easy to read summary
+
+show standby         // much more detailed output
+```
+
+To list HSRP group configured for an interface
+```c
+show standby vlan <vlan ID>
+```
+
+### Dynamic Host Configuration Protocol (DHCP)
+- Purpose:
+	- Assign an IP and gateway to hosts -> avoids manual configuring IPs
+	- Easy IP address management at scale
+- Cons
+	- You can forget to exclude some addresses and will be assigning IPs to devices we want to remain static.
+	- may run out of IP address to give if we have long of a lease.
+		- example: a smaller subnet that is in a area that is transity like guest wifi. IF we set the timer to 5 days and the subnet gets filled up by a bunch of users being in that area then when they leave they leave with that ip so if a new client shows up they may not e assigned a new IP because they are all taken until the LEASE runs out.
+	
+
+- ##### DHCP Does not give out IP addresses it "***LEASES***" them. There is a timer for how long a IP is given to a end point. The timer is up to the engineers discression. 
+
+### DHCP Participants
+- Client
+	- Device requesting IP and gateway
+- Relay Agent
+	- Device that helps facilitate communication between client and server
+	- The "middle man"
+- Server
+	- Device supplying IP and gateway.
+		- cantains pool
+- IP HELPER is only put on defualt gateways  that would require dynamic assigned hosts
+	- defualt gateway that would require dynamic assigned hosts
+	- If static then we wouldnt need to put ip helper on default gateway
+
+NOTE: If we have a loopback on a router using DHCP we do not want it to participate in DHCP so we will have to explicitly EXCLUDE that interface from DHCP. This is ONLY the case if the IP might fall under the subnet of the POOL. 
+EX: A pool of 10.0.0.0 255.255.255.0 with a loopback of 10.2.2.2 255.255.255.255 will not need to be EXCLUDED because it will not ever be "black holed into pool"
+
+### DHCP Components
+- DHCP Service
+	- Enables DHCP on a router ("service DHCP")
+- DHCP pool
+	- Specifies a pool of IP addresses
+	- Seperate pool for each subnet
+- DHCP Excludes 
+	- Addresses in pools not to e given out
+- IP Helper Address
+	- Enable the DHCP relay on an interface
+[picture of DHCP]
+WE WILL NOT "EXCLUDE" THE LOOP BACK BECAUSE IT DOES NOT FALL INTO THE DHCP POOL IN THE ABOVE EXAMPLE
+
+### Request process
+1. discover
+2. offer
+3. request
+4. acknowledge
+
+### DHCP Configurations:
+
+##### CONFIGS
+Enable the DHCP service:
+```c
+service dhcp
+```
+
+Create DHCP pools:
+```c
+// ip dhcp pool <naming convention. This is just a name>
+ip dhcp pool <VLAN_ID_10.100.0.0/24_POOL>
+network <10.100.0.0> mask <255.255.255.0>
+default-router <10.100.0.1>    // router that will have these pools on it.
+```
+
+Exclude IP addresses from DHCP pools:
+```c
+ // Excludes these addresses from being assigned elsewhere
+ip dhcp exclude-address <10.100.0.1>  
+ip dhcp exclude-address <10.100.0.2>
+ip dhcp exclude-address <10.100.0.7>
+```
+
+IP helper Address Config
+```c
+ip helper-address <10.100.0.1>
+```
+
+##### DHCP VERIFICATIONS:
+To list current DHCP leased addresses:
+```c
+show ip dhcp binding
+```
+
+To list configured DHCP pools:
+```c
+show ip dhcp pool
+```
 
 
 # Lecture10
