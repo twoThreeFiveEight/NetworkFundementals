@@ -54,8 +54,10 @@ rtrIL029a02a01(config-router)#  // protocol config modes global
 show running-config interface <fastEthernet 0/2>
 show run                  // shows all configs
 
-traceroute
 trace
+traceroute <ip>
+traceroute <ip> source loopback 0
+traceroute <ip> source <use outgoing interface as source ip>
 
 show ip protocols         // VERY USEFULL FOR NETWORK DISCOVERY
 

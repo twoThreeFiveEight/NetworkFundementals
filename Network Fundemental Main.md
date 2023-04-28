@@ -974,7 +974,7 @@ when a request it willl record its MAC address on its table and the port number 
 	- **Root bridge** = Swtich with the lowest BID
 		- root bridge means it makes all decisions on what ports are open and which ones are blocked. Remember this is all to prevent broadcast storms. That is all.
 	- **BID** = Bridge ID; priority + MAC address
-		- bid = 36768 + mac
+		- bid = 32768 + mac
 	- **Priority** = arbitrary number to influence root bridge election; 
 		- ### Defualt value = 32768
 			- If default prioity is selected a older switch (Older switch = one manufactured with a lower mac address number then the newer ones) will take priority before the new switch which would be undesirable because we want the newer more powerful switch to be our root. 
@@ -1018,6 +1018,8 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 - Blocked Port
 	- Port blocked to prevent loop
 	- redundent port
+	- needed where a loop is formed
+	- decided based on costs for traffic travel path to root bridge.
 [picture of STP port roles]
 
 [link cost picture STP port speed costs]
@@ -1052,7 +1054,7 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 	
 - WE CAN SKIP THE 50 SECONDS THIS PROCESS TAKES BY PROGRAMMING OUR PORTS TO SKIP BLOCKED, LEARNING, AND LISTEN PHASE. - Spanning tree Portfast
 
-### Newer Versionds of STP
+### Newer Versions of STP
 - Rapid Spanning Tree (RSTP)
 	- Newer port roles and states
 	- combines Listening and Blocking states into one state called "discarding state" (saves 20s)
@@ -1075,13 +1077,13 @@ To configure: Spanning-Tree portfast:
 // global port portfast selection on all ports
 spanning-tree portfast default
 
-// individual port portfast selection
-int g0/0
-spanning-tree portfast
-
 // remove spanning-tree portfast
 int g0/0
 no spanning-tree portfast
+
+// individual port portfast selection
+int g0/0
+spanning-tree portfast
 ```
 
 - BPDU Guard
@@ -1850,21 +1852,23 @@ show ip nat statistics
 
 ### Port Channels (aka Etherchannel)
 - Purpose 
-	- Bindle many physical linked into one logical link
-		- ##### port channel bundles physical links into a channel-group to create a single logical link that provides the aggregate bandwidth.
+	- Bundle many physical links into one logical link
+		- ##### port-channel bundles physical links into a channel-group to create a single logical link that provides the aggregate bandwidth.
 	- Provide link redundancy 
 	- Increases bandwidth
 		- It does not increase speed
 		- speed cannot exceed the capabilities of a single link
-- STP sees port-channel as single logical link
-- Max. number of bindled ports = 8  (typically)
+- Spanning Tree Protocol (STP) see's port-channel as single logical link
+- Max number of bundled ports = 8  (typically)
 - Speed cannot exceed max speed of single link
-- "**Etherchannel**" aggregate the traffic accross all available active ports in the channel 
+- "**Etherchannel**" aggregate the traffic across all available active ports in the channel. Meaning it sends traffic evenly across the ports rather then sending many packets down only one line of the port-channel
 
 ### Bundling ports
 - Manual
 	- Mode "on"
 	- Forces port into etherchannel (risk of broadcast storms)
+	- Statically adding ports
+	- ***inferior and should not be done. A loop will be created from the port channel its self.
 - Dynamic
 	- Link Aggregation Control Protocol (LACP)
 		- A protocol for auto-negotiation and maintaining LAG
@@ -1911,7 +1915,7 @@ To verify the port-channel status: (JUST CHEKS FOR UP UP STATE)
 show ip interface brief
 ```
 
-To list the stat of each individual member: (THIS WILL BE MOST USED)
+To list the state of each individual member: (THIS WILL BE MOST USED)
 ```c
 show etherchannel summary
 ```
@@ -1929,7 +1933,7 @@ show etherchannel summary
 	- There are others but are uncommon
 
 NOTE: 
-both switches are sending signals to each other every 3 seconds. If the timer rund out and a signal is lost from the master switch the slave will take the position as the master and send out a "***Gratuitous ARP signal***" which updates the MAC address tables with the new port interface to send traffic through. Note the Mac address for the switches are made into one virtual MAC called "***vMAC***" So when the switch from master to slave is made the only change to the MAC address table is the port number but the Table maintains the same vMAC
+both switches are sending signals to each other every 3 seconds. If the timer runs out and a signal is lost from the master switch the slave will take the position as the master and send out a "***Gratuitous ARP signal***" which updates the MAC address tables with the new port interface and updates the vMAC to send traffic through. Note the Mac address for the switches are made into one virtual MAC called "***vMAC***" So when the switch from master to slave is made the only change to the MAC address table is the port number but the Table maintains the same vMAC
 [picture about ralationship between the master switch and the slave]
 [difference between HSRP and VRRP (redundancy protocols)]
 
@@ -1937,29 +1941,36 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 ##### Hot Standby Router Protocol
 - Purpose
 	- Provide gateway redundancy
-	- Allow traffiic to clow in the event of a device/ link failure
+	- ***Allow traffic to flow through the redundant route in the event of a device/ link failure
 - Cisco propriety
 - Doesnt modify the routing table
 - VIPS are used in HSRP -> in configs the VIPS is when we are writting the "***Standby Commands***"
 
 - Virtual IP Address (VIP)
 	- IP address for HSRP
-	- must be in the same subnet
+	- IP that isnt tied to a specific interface rather both redundancy routes via a logical interface.
+	- must be in the same subnet as the existing network 
 	- Sometimes called Standby IP
 
 - Standby group
 	- Logical group of routers participating in a HSRP process
 	- 0 - 255
+	- Best convention is labeling the standby number the same as the vlan
+		- the number doesnt need to be the vlan to work but its good for identifying purposes.
 	- standby version 2
 		- 0 - 4094
-	- ***MUST MATCH ON ALL DEVICES***
+	- ***MUST MATCH ON ALL DEVICES*** -> when you have multiple devices and they are both using the same vlan then what ever standby group # you give the SVI for vlan <1290> on the preempt router you must assign the the corresponding SVI on the NON preempt the same group number. 
+		- Best convention is labeling the standby number the same as the vlan
+			- the number doesnt need to be the vlan to work but its good for identifying purposes.
 
 - Priority ->TEST -> What determines master and slave relationships
 	- ***Higher wins
 	- Cisco default 100
+		- When making the slave router by best practices you should not use the default number. Make it like 90 or something.
 - Preempt
 	- Allow a higher priority router to return to active
 	- ONLY PUT THIS COMMAND ON THE HIGHER PRIORITY ROUTER -> MASTER ROUTER.
+	- if the master (preempt) router goes down and comes back up the `standby <1290> preempt` command allows it to become "active" again. 
 - Preempt Delay
 	- Timer before preemption occurs
 	- You can use this so the switch from slave to master only occurs if the new master router is up and "***Healthy***" for 20-30 minutes. This makes sure that if there is a issue with one routers it doesnt keep switching back and forth unless the router had proved up and healthy for X amount of time.
@@ -1971,7 +1982,6 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 ### HSRP CONFIGURATIONS:
 Switch 1 SVI
 ```c
-
 // Master L3 switch/router
 interface vlan <XX>
 ip address <vlan IP> <subnet mask>
@@ -1987,7 +1997,6 @@ standby version 2    // 2 is the most common
 standby <X> ip <virtual ip (VIP)>
 standby <X> priority <Needs to be a lower priority>
 // NO PREEMPT ON SLAVE
-
 ```
 
 ##### HSRP Verification:
