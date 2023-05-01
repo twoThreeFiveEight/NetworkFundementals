@@ -8,8 +8,31 @@
 [Lecture7](#lecture7) -> OSPF
 [Lecture8](#lecture8) -> BGP/PAT
 [Lecture9](#lecture9) -> Redundancy
-[Lecture10](#lecture10) ->
+[Lecture10](#lecture10) -> Filtering
 
+## Interesting To Note
+----
+#### ROUTERS:
+- Some routers a an IP address and MAC address ON EACH INTERFACE
+	- Meaning each port reponds to a ARP request differently
+	- The MAC on any specific interface is usually the BASE MAC of the device + the port number
+		- In otherwords if the MAC is a.a.f.0 and it has 4 ports the other ones would be numbered  a.a.f.1, a.a.f.2, a.a.f.3, a.a.f.4.
+- If a router receives a packet with a unknown destination IP in the routing table, the packet is dropped. 
+	- This is why we use the defualt route. It is the "***Route That Matches All Routes***" and allows the  router to foward the packet if nothing is found with a "longer match" (remember the "Longest Match Rule") through the default route. 
+
+ROUTING TABLE POPULATION METHODS:
+- Directly Connected
+	- A router will add routes to the network/subnet that are configured on its interfaces to the routing table knowing that its interface matches a network with in the interface IP.
+- Static Routes
+	- Routes Manually provided by an administrator
+	- can be straight to a subnet or a summerization of many subnets.
+- Dynamic routes
+	- Learned Automatically from other routers.
+	- OSPF, EIGRP, BGP, IS-IS, RIP -> common protocols
+
+#### SWITCHES
+- Switches cannot do inter VLAN routing.
+	- In other words even if a computer is using the same switch they are technically different networks and need a router to send one packet from vlan 1xx0 to 2xx0. The switch cannot make this happen, There for a switch cannot do inter VLAN routing.
 
 ## Lecture1
 ---- 
@@ -1572,7 +1595,7 @@ show ip ospf rib    // rib = routing information base.
 ### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
 #### BGP
-- Border gateway protocol
+- Border gateway prot ocol
 	- Exterior Gateway Protocol
 	- Routing protocol of the internet
 	- two types of BGP
@@ -1650,7 +1673,7 @@ SIDE NOTE:
 ### BGP NEIGHBORS
 - Manually configured, Not dynamically discovered
 - Same AS number = iBGP
-- Different AS number = eBGP
+- Different AS number = eBGP 
 - Neighbor states
 	- idle - Neighbor not responding
 	- Active - attempting to connect
@@ -1695,7 +1718,7 @@ redistribute bgp 50
     - inside same AS -> working inside the same network  
     - BGP peering between routers in the same AS  
     - Admin Distance = 200  
-        - Not trusted nearly as much as eBGP  
+        - Not trusted nearly as much as eBGP, EIGRP  or OSPF
         - will opt for eigrp or ospf before opting in on iBGP  
     - Full mesh requirements        - each router has a wire going to each router.  
         - full mesh -> "split horizon rule" requires a full mesh
@@ -1777,6 +1800,8 @@ show ip bgp neighbor [x.x.x.x] advertised-routes
 
 - The NAT function changes the private IP addresses to publicly registered IP addressess inside each IP packet.
 [picture of NAT]
+
+- CLEVER NOTE: If two companies have overlapping IPs and one buys the other you can join them using NAT to avoid having to change the entire networks IP addressing to avoid the duplicate IP problem.
 
 ### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
@@ -1892,7 +1917,7 @@ show ip nat statistics
 Set up the local port-channel
 ```c
 // setting up the interface 
-interface port-channel <g0/1>
+interface range <g0/1>
 switchport trunk encapsulation dot1q
 switchport mode trunk 
 switchport trunk allowed vlan <##,##>
@@ -2104,6 +2129,297 @@ show ip dhcp pool
 # Lecture10
 ----
 [back to top](#sections)
+
+### Subject: Filtering
+
+##### TOPICS:
+- Prefixe Lists
+
+## GBP route Filtering
+- Control route advertisements
+- Filters are applied to neighbors
+- Filters may be used by multiple peers
+- By default BGP will advertise (propagate) all Prefixes it knows to all neighboring routers.
+	- This will crash the internet and crash our selves because there may be a tremendious amount of prefixes that get sent and need to get processed
+	- Imagine a ISP sending its entire list to a small companies router. That router could not handle how large that list is.
+- Methods:
+	- Prefix Lists
+		- Prefix = Network IP + Subnet Mask
+	- Route-maps
+		- Remember - "***FILTERING***" routes in BGP we utilize BOTH "***prefix-lists***" & "***route-maps***"
+
+## Prefix List & Route Maps
+- Prefix Lists
+	- Match exact prefixes
+- Route Maps 
+	- Match prefix lists
+	- Match other route attributes
+		- EX: metric, next-hop, route-source, route-type, etc.
+
+## Direction of Filtering
+- #### Relative to local router
+- Inbound
+	- Filtering advertisements received from a peer
+	- Filtered routes not added to BGP table
+- OutBound
+	- Filtering advertisements sent to a peer 
+	- BGP table gets filtered 
+
+## Soft Reconfiguration Inbound
+- Buffer to store complete advertisement from peer
+	- Basically stores a copy of the data flowing through, so we can compare what went through the filter compared to how the ilter actually filtered
+- All routes received from peer before filtering
+- Enable soft reconfiguration:
+```c 
+router bgp 65501
+neighbor 10.1.1.1 soft-reconfiguration inbound
+```
+Show routes from peer before filtering:
+```c
+show ip bgp neighbor 10.1.1.1 received-routes
+```
+
+## Prefix Lists
+- Similar to Named ACLs
+- Matches Prefixes, not IP addresses
+- #### Implicit deny any -> AT THE END OF EVERY PREFIX LIST (TEST)
+
+## Prefix List Configuration
+- Create the prefix list:
+```c
+// always add a sequence number and ALLOWS GIVE YOUR SELF SPACE INBETWEEN SEQ #
+ip prefix-list MyPrefixList seq 10 deny 10.2.31.0/24
+ip prefix-list MyPrefixList seq 20 permit 10.0.0.0/8
+ip prefix-list MyPreFixList seq 30 permit 0.0.0.0/0
+// IMPLICIT DENY LIVES HERE
+```
+- Filter a neighbor's advertisements with Prefix List:
+```c
+// nieghbor <IP to neighbor you want the rules applied> prefix-list <ListName> in/out
+router bgp 6501
+neighbor 10.37.51.66 prefix-list MyPreFixList in
+```
+
+## Prefix List Verification:
+- To list all prefix lists:
+```c
+show ip prefix-list
+```
+- To show a specific prefix list:
+```c 
+show ip prefix-list MyPrefixList   //  <- MyPreFixeList is the name of list 
+```
+- To show configured prefix lists:
+```c
+show running-config | section ip prefix-list
+```
+
+## Route Maps
+- Nested structure
+	- Route map entry
+	- Match statement
+- Cna match a prefix list and/or various route attributes
+- ##### Implicit deny any at the end (TEST)
+- What are they really?
+	- "If-then" programming solution of cisco. 
+	- Allows you to check for certain match conditions and optionally set values
+- Example of what we can do:
+	- only advertise EIGRP routes to neighbor change the next hop address
+
+## Route Map Configurations
+
+##### Create a Prefix list to match
+
+Create a route map to filter based on prefix list:
+```c
+// Creates route map and add route-map sequence numbers of route-map
+route-map MyRouteMap1 permit 10
+// Now we are inside route map and setting the condition "MATCH" IPs in MyPrefixList
+// <condition> ip address prefix-list <ListName>
+match ip address prefix-list MyPrefixList 
+```
+
+Create additional route map entry:
+```c
+route-map MyRouteMap2 deny 10
+match ip address prefix-list MyPrefixList
+route-map MyRouteMap2 permit 20
+```
+
+Create route map that matches multiple prefix lists:
+```c
+route-map MyRouteMap3 permit 10
+match ip address prefix-list MyPrefixList1 List2
+```
+
+##### Applying filter to BGP
+
+Filter advertisement TO/FROM NEIGHBOR:
+```c
+router bgp 65501
+neighbor 10.1.1.2 route-map MyRouteMap1 out
+nieghbor 10.1.1.2 route-map MyRouteMap2 in
+```
+
+## Route Map Verification:
+
+To show all route maps
+```c
+show route-map
+```
+
+To show a specific route map:
+```c
+show route-map MyRouteMap1
+```
+
+## BGP Route Filtering Verification:
+- ##### NEED TO HAVE SET SOFT-CONFIGURATION PRIOR TO THESE COMMANDS
+
+To show routes from a peer BEFORE filters:
+```c
+show ip bgp neighbor 10.1.1.2 received-routes
+```
+
+To show a route from a peer AFTER filters:
+```c
+show ip bgp neighbor 10.1.1.2 routes
+```
+
+To show routes being sent to a peer after filtering:
+```c
+show ip bgp neighbor 10.1.1.2 advertised-routes
+```
+
+## Access Control Lists (ACLs)
+- Generic list of permit and deny statemetns
+- Used as basic security for networks
+- identify interesting traffic for another process
+	- what can we use them for
+		- Filtering incoming packets 
+		- Filtering outgoing packets
+		- Resistrict content of routing updates
+		- Control VTY access -> remote access control
+- Access lists perform packet filtering to control which packets move through the network and where
+
+## ACL Types
+- Standard ACL
+	- ACL number 1 - 99 and 1300 - 1999
+	- ##### Matches only the source IP address (TEST)
+	- "should" be placed near the destination of the packets.
+- Extended ACL
+	- ACL numbers 100 - 199 and 2000 - 2699
+	- Matches Protocol (IP, TCP, UDP,etc. ), SRC/DST IP, SRC/DST L4 Port Number.
+		- The IP protocol type
+		- The source IP address
+		- The destination 
+
+## ACL Processing
+- ###### Each line is processed sequentially; top-down
+- ##### if a line matches, stop processing
+- ##### Implicit "deny any" at the end of all ACLS (TEST)
+
+
+## Configuring ACLs
+- First ACL entry creates the ACL Subsequent lines added to the end of the list
+- Deleting the ACL will delete the entire list of entries <- IMPORTANT
+- To re-order the list, delete lines by sequence numbers and reapply with new sequence numbers
+
+## ACL Traffic Filtering
+- Applied to an interface
+	- One ACL per interface, per direction
+- Inbound
+	- Filters traffic received into an interface
+- Outbound
+	- Filters traffic before transmitting out of an interface
+
+### ACL Configuration
+
+##### Standard ACL type Config
+To define a standard ACL:
+```c
+access-list <10> permit <10.0.0.0> <0.255.255.255>
+access-list <10> <permit/deny> host <3.3.3.3>
+```
+
+To apply standard ACL to interface for filtering:
+```c 
+interface <g0/0>
+ip access-group <10> <in/out>
+```
+
+##### Extended ACL type Config
+To define an extended ACL:
+```c
+// wild card mask
+access-list 101 permit ip 10.0.0.0 0.255.255.255 any
+// access-list 101 <permit/deny> <protocol> <IP range to IP> eq <port of protocols>
+access-list 101 deny tcp any any eq 80  // 80 is "http"
+access-list 101 permit ip host 3.3.3.3 any
+```
+
+To apply extended ACL to interface for filtering:
+```c
+interface g0/0
+ip access-group 101 in
+```
+
+## ACL Verification
+
+To list all ACL entries:
+```c
+show access-lists
+```
+
+To list a specific ACL's entries:
+```c
+show access-lists 10
+```
+
+To check if an ACL is applied to an interface:
+```c
+show ip interface g0/0
+```
+
+## Named ACLs
+- Processed like a numbered ACL
+- Identified by text name -Case Sensitive
+- Easier to manage 
+	- Sequence numbers allow for modificaiton of sinle ACL entries
+
+## Named ACL Configurtation:
+
+To create a named ACL:
+```c
+ip access-list standard <MyACL>
+10 permit host 1.1.1.1
+20 deny 10.1.2.0 0.0.0.255
+15 permit host 10.1.2.115   // adding this will actually squeeze this line in between the 10 and 20. This is why we label them 10,20,30,40 that way we can add new updates inbetween areas when needed.
+```
+
+To remove a single line:
+```c
+ip access-list standard MyACL
+no 20 deny 10.1.2.0 0.0.0.255
+```
+
+To delete entire ACL:
+```c
+no ip access-list standard MyACL
+```
+
+### Determining what TYPE the ACL is. (standard/ extended)
+
+```c
+// For this example we are assuming these are seperate ACLs all we are anylising only the identification of the TYPEs
+
+// Standard = 1-99, 1300-1999
+Standard b/c the "70" -> ip access-list 70 deny 10.2.xx.8 0.0.0.255
+
+// extended = 100-199, 2000-2699
+Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
+```
+
 
 
 # Lecture11

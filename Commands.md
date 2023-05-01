@@ -3,9 +3,11 @@
 ----
 Basic:            [FindThings](#findthings) | [Modes](#modes) | [TroubleShoot](#troubleshoot) | [Section](#section) | [InterfaceRanges](#interfaceranges)
 
-Devices:        [InitialConfig](#initialConfig) | [SwitchConfig](#switchconfig) | [L3 Switch](#l3%20switch)| [Router](#router) | [Port Channel](#port%20channel)
+Devices:        [InitialConfig](#initialConfig) | [SwitchConfig](#switchconfig) | [L3 Switch](#l3%20switch) | [Router](#router) | [Port Channel](#port%20channel)
 
-Protocols:     [EIGRP](#eigrp) | [OSPF](#ospf) | [BGP](#bgp) | [NAT/PAT](#nat/pat) | [HSRP](#hsrp) | [DHCP](#dhcp)
+Interfaces:    [Access Interface](#access%20interface) |  [Trunk](#trunk) 
+
+Protocols:     [EIGRP](#eigrp) | [OSPF](#ospf) | [BGP](#bgp) | [ACL](#Access-List%20(ACL)) | [Prefix Lists](#prefix%20lists) | [Route Maps](#route%20maps) | [NAT/PAT](#nat/pat) | [HSRP](#hsrp) | [DHCP](#dhcp) |  
 
 ALL:              [ALL VERIFICATIONS](#all%20verifications)
 
@@ -106,7 +108,7 @@ login local
 ## SwitchConfig
 -----
 ##### ^
-Sections: [VLAN](#vlan) | [SVI](#svi) | [Trunk](#trunk) | [Access](#access) | [Port Channel](#port%20channel)
+Sections: [VLAN](#vlan) | [SVI](#svi) | [Trunk](#trunk) | [Access Interface](#access%20interface) | [Port Channel](#port%20channel)
 
 ##### VLAN
 ----
@@ -167,7 +169,7 @@ show interface trunk
 show interface <f0/2> switchport
 ```
 
-#### Access
+### Access Interface
 ----
 [back to top](#sections)
 [back to switch](#^)
@@ -253,7 +255,7 @@ show etherchannel summary
 -----
 [back to top](#sections)
 
-MUST ADD THIS.
+MUST ADD THIS TO ENABLE ROUTING
 ```c
 // MUST enable to allow routing
 ip routing
@@ -274,6 +276,23 @@ name Office2
 
 vlan 3290
 name Server
+
+// ROUTED link Interface
+// -------------------------
+// TO_ROUTER
+
+interface g0/3
+no switchport     // MUST PUT THIS
+ip address 10.2.29.201 255.255.255.252
+shut
+no shut
+
+// LoopBack configurations
+// -------------------------
+interface loop0
+ip address 10.2.29.194 255.255.255.255
+shut
+no shut
 
 // SVI -> defualt gateways
 // -----------------------
@@ -297,25 +316,6 @@ description Users: Server
 ip address 10.2.29.225 255.255.255.224
 shut
 no shut
-
-// LoopBack configurations
-// -------------------------
-interface loop0
-ip address 10.2.29.194 255.255.255.255
-shut
-no shut
-  
-
-// Interfaces configs here
-// -------------------------
-// TO_ROUTER
-
-interface g0/3
-no switchport
-ip address 10.2.29.201 255.255.255.252
-shut
-no shut
-
 
 // Static Routes go here
 
@@ -442,6 +442,7 @@ ip route <network address> <subnet mask> <next hop IP>
 ```
 
 
+
 ### EIGRP 
 -----
 [back to top](#sections)
@@ -514,32 +515,42 @@ router bgp 1xx  // instance number
 neighbor 63.2.xx.17 remote-as 7922      // Making neigbor relationship with ISP
 network 63.2.xx.0 mask 255.255.255.0    // bgp uses subnet mask as opposed to wildcard 
 
+//------------------------------------------------------------------------------------
+// This is injecting the summary into BGP
+ip route 10.1.1.0 255.255.255.0 Null0 name Summary_Null_Route 
 
-// inside Nat is done inside![[20230414_105217.jpg]] the interface
-int g0/2 - 4   // this is a range syntax for port 2-4 works for other things as well
-ip nat inside
+// Create first condition
+ip prefix-list <NAME1_OUT> seq 5 permit 10.1.1.0/24 
+route-map <NAME1_OUT> permit 10          // Create a route-map
+match ip address prefix-list <NAME1_OUT> // bind the prefix to the route map
 
-// IF YOU WISH TO HAVE EXTERNAL ACCESS TO THE LOOP. MAKE THE LOOP `ip nat inside`
-int loop0
-ip nat inside
+// Create second condition.
+ip prefix-list <NAME2_IN> seq 5 permit 10.2.2.0/24  
+route-map <NAME2_IN> permit 10          // Create a route-map
+match ip address prefix-list <NAME2_IN> // bind the prefix to the route map
 
-// GLOBAL CONFIGURTATION MODE
+router bgp 10 
+redistribute static neighbor 10.2.2.1 remote-as 102 
+neighbor 10.2.2.1 description BGP_NEIGHBOR 
+neighbor 10.2.2.1 soft-reconfiguration inbound  // Essential for Filter Verifications
 
-// outside Nat is done in the global config mode
-int g0/1
-ip nat outside
-
-// ACL 
-access-list 1 permit 10.2.XX.0 0.0.0.255  
-access-list 2 permit 180.3.XX.0 0.0.0.255
+// dictates what gets advertised to neighbor
+// neighbor <next hop> route-map <MapName> in/out
+neighbor 10.2.2.1 route-map <NAME1_OUT> out     
+neighbor 10.2.2.1 route-map <NAME2_IN> in
 ```
 
 VERIFICATIONS:
 ```c
 show ip nat tanslations
 show run | section nat
-show ip bgp sum
 show run | sec bgp
+show ip bgp sum         // short for summery
+show ip bgp neighbors
+show ip route
+
+// Reset peer to peer connections/ will refind its neighbors
+clear ip bgp * soft 
 
 // Must have "soft-reconfiguration inbound" set for peer set for peer indie router bgp // 2XX conf.
 // This command stores all unfiltered routes from neighbor in seperate database
@@ -551,6 +562,122 @@ show ip bgp neighbor [x.x.x.x] received-routes
 
 // To view routes being sent to neighbor:
 show ip bgp neighbor [x.x.x.x] advertised-routes
+```
+
+
+### Access-List (ACL)
+---- 
+[back to top](#sections)
+
+##### STANDARD ACL type Configuration:
+To define a standard ACL:
+```c
+// WILD CARD SUBNET NOTATION
+access-list <10> permit <10.0.0.0> <0.255.255.255>
+access-list <10> <permit/deny> host <3.3.3.3>
+```
+
+To apply standard ACL to interface for filtering:
+```c 
+interface <g0/0>
+ip access-group <10> <in/out>
+```
+
+##### EXTENDED ACL type Configuration:
+To define an extended ACL:
+```c
+// WILD CARD SUBNET NOTATION
+access-list 101 permit ip 10.0.0.0 0.255.255.255 any
+// access-list 101 <permit/deny> <protocol> <IP range to IP> eq <port of protocols>
+access-list 101 deny tcp any any eq 80  // 80 is "http"
+access-list 101 permit ip host 3.3.3.3 any
+```
+
+To apply extended ACL to interface for filtering:
+```c
+interface g0/0
+ip access-group 101 in
+```
+
+VERIFICATIONS:
+```c
+// show all ACL entries
+show access-lists
+
+// List a specific ACL entry
+show access-lists 10    // seq number
+
+// Check if ACL applied to interface
+show ip interface g0/0
+```
+
+
+### Prefix Lists
+----
+[back to top](#sections)
+
+CONFIGURE:
+- Create the prefix list:
+```c
+// always add a sequence number and ALLOWS GIVE YOUR SELF SPACE INBETWEEN SEQ #
+ip prefix-list MyPrefixList seq 10 deny 10.2.31.0/24
+ip prefix-list MyPrefixList seq 20 permit 10.0.0.0/8
+ip prefix-list MyPreFixList seq 30 permit 0.0.0.0/0
+// IMPLICIT DENY LIVES HERE
+```
+- Filter a neighbor's advertisements with Prefix List:
+```c
+// nieghbor <IP to neighbor you want the rules applied> prefix-list <ListName> in/out
+router bgp 6501
+neighbor 10.37.51.66 prefix-list MyPreFixList in
+```
+
+VERIFICATION:
+```c
+show ip prefix-list                           // To list all prefix lists:
+show ip prefix-list MyPrefixList              // MyPreFixeList is the name of list
+show running-config | section ip prefix-list  // show configured lists.
+```
+
+
+### Route Maps
+-----
+[back to top](#sections)
+Create a route map to filter based on prefix list:
+```c
+// Creates route map and add route-map sequence numbers of route-map
+route-map MyRouteMap1 permit 10
+// Now we are inside route map and setting the condition "MATCH" IPs in MyPrefixList
+// <condition> ip address prefix-list <ListName>
+match ip address prefix-list MyPrefixList 
+```
+
+Create additional route map entry:
+```c
+route-map MyRouteMap2 deny 10
+match ip address prefix-list MyPrefixList
+route-map MyRouteMap2 permit 20
+```
+
+Create route map that matches multiple prefix lists:
+```c
+route-map MyRouteMap3 permit 10
+match ip address prefix-list MyPrefixList1 List2
+```
+
+##### Applying filter to BGP
+Filter advertisement TO/FROM NEIGHBOR:
+```c
+router bgp 65501
+neighbor 10.1.1.2 route-map MyRouteMap1 out
+nieghbor 10.1.1.2 route-map MyRouteMap2 in
+```
+
+VERFICATIONS:
+
+```c
+show route-map
+show route-map MyRouteMap 
 ```
 
 ## NAT/PAT
@@ -583,7 +710,7 @@ ip nat pool OUTSIDE 10.2.12.249 10.2.12.254 netmask 255.255.255.248
 ip nat outside source list 1 pool OUTSIDE add-route  
 ```
 
-
+##### 
 VERIFICATIONS
 ```c
 show ip nat translations
@@ -640,7 +767,7 @@ show standby vlan <vlan ID>
 CONFIGS:
 Enable the DHCP service:
 ```c
-service dhcp
+service dhcp // this is placed on the device.
 ```
 
 Create DHCP pools:
@@ -705,11 +832,17 @@ VERIFICATIONS:
     show ip protocols
 
 	// BGP
+	show ip bgp
+	show ip bgp neighbors
     show ip bgp summary
+    show ip routes
 	show run | sec bgp
-	// To view routes recieved from neighbor:
+	// BGP FILTERING VERIFICATION
+	// To view routes recieved Before filter:
 	show ip bgp neighbor [x.x.x.x] received-routes
-	// To view routes being sent to neighbor:
+	// TO view routes after filter
+	show ip bgp neighbor [x.x.x.x] routes
+	// To view routes being sent to peer after filtering
 	show ip bgp neighbor [x.x.x.x] advertised-routes
     
     // OSPF
@@ -729,6 +862,9 @@ VERIFICATIONS:
     traceroute
     ping
 
+	// Port Channel
+	show etherchannel summary
+
 	// NAT
 	show ip nat translations
 	show ip nat statistics
@@ -743,6 +879,21 @@ VERIFICATIONS:
 	show standby                   // much more detailed output
 	show standby vlan <vlan ID>    // list HSRP group configured for an interface
 
+	// Access List
+	show access-lists              // show all ACL entries
+	show access-lists <seq #>      // List a specific ACL entry 
+	show ip interface g0/0         // Check if ACL applied to interface
+
+	// route maps
+	show route-map                 // all maps
+	show route-map <ListName>      // Specific
+
+	// Prefix lists
+	show ip prefix-list            // all lists
+	show ip prefix-list <ListName> // Specific
+	show running-config | section ip prefix-list   // Show configured lists
+	
+	
 
 
 ```
