@@ -9,6 +9,7 @@
 [Lecture8](#lecture8) -> BGP/PAT
 [Lecture9](#lecture9) -> Redundancy
 [Lecture10](#lecture10) -> Filtering
+[Lecture11](#lecture11) -> IPsec
 
 ## Interesting To Note
 ----
@@ -2132,8 +2133,10 @@ show ip dhcp pool
 
 ### Subject: Filtering
 
+[Prefix list in detail](obsidian://open?vault=network%20fundementals&file=Prefix%20List%20in%20Detail)
+
 ##### TOPICS:
-- Prefixe Lists
+- Prefix Lists
 
 ## GBP route Filtering
 - Control route advertisements
@@ -2151,6 +2154,7 @@ show ip dhcp pool
 ## Prefix List & Route Maps
 - Prefix Lists
 	- Match exact prefixes
+		- If we have a network that does not match exactly to the prefix list we added to the route map that we want to advertise then we will have an issue because it will pass the filter and end up being implicitly denied. So we need to Match that network and Subnet EXACTLY as it shows up to avoid this issue.
 - Route Maps 
 	- Match prefix lists
 	- Match other route attributes
@@ -2159,13 +2163,13 @@ show ip dhcp pool
 ## Direction of Filtering
 - #### Relative to local router
 - Inbound
-	- Filtering advertisements received from a peer
+	- Filtering advertisements received from peer (Computer we are isolating) 
 	- Filtered routes not added to BGP table
 - OutBound
-	- Filtering advertisements sent to a peer 
+	- Filtering advertisements sent to a peer  (Computer we are isolating)
 	- BGP table gets filtered 
 
-## Soft Reconfiguration Inbound
+## Soft-Reconfiguration Inbound
 - Buffer to store complete advertisement from peer
 	- Basically stores a copy of the data flowing through, so we can compare what went through the filter compared to how the ilter actually filtered
 - All routes received from peer before filtering
@@ -2385,7 +2389,7 @@ show ip interface g0/0
 - Processed like a numbered ACL
 - Identified by text name -Case Sensitive
 - Easier to manage 
-	- Sequence numbers allow for modificaiton of sinle ACL entries
+	- Sequence numbers allow for modificaiton of single ACL entries
 
 ## Named ACL Configurtation:
 
@@ -2421,7 +2425,11 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 ```
 
 
-
 # Lecture11
 ----
 [back to top](#sections)
+
+### Subject: IPsec
+
+
+

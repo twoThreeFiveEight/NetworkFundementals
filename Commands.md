@@ -11,8 +11,9 @@ Protocols:     [EIGRP](#eigrp) | [OSPF](#ospf) | [BGP](#bgp) | [ACL](#Access-Lis
 
 ALL:              [ALL VERIFICATIONS](#all%20verifications)
 
-----
+Operating system Commands: [Network Command Comparison](#network%20command%20comparison) | [Linux](#linux) | [Windows](#windows)
 
+----
 
 ## FindThings
 ----
@@ -897,3 +898,141 @@ VERIFICATIONS:
 
 
 ```
+
+# Network Command Comparison
+----
+[back to top](#sections)
+```c
+// Display information about network interfaces, including IP addresses, netmasks, and MAC addresses
+Cisco IOS: show interfaces
+Linux: ifconfig
+Windows: Get-NetAdapter
+
+// Show and modify IP addresses, routes, and other network configuration settings
+Cisco IOS: show ip interface brief
+Linux: ip address show
+Windows: Get-NetIPAddress, Get-NetRoute
+
+// Send ICMP echo requests to a specified destination IP address to test network connectivity
+Cisco IOS: ping <destination IP address>
+Linux: ping <destination IP address>
+Windows: Test-Connection <destination IP address>
+
+// Show the path that packets take to reach a specified destination IP address, including the IP addresses of the routers along the way
+Cisco IOS: traceroute <destination IP address>
+Linux: traceroute <destination IP address>
+Windows: tracert <destination IP address>
+
+// Display information about active network connections, including listening ports, established connections, and network statistics
+Cisco IOS: show ip sockets
+Linux: netstat -a
+Windows: Get-NetTCPConnection, Get-NetUDPEndpoint
+
+// Display the ARP cache, which maps IP addresses to MAC addresses on a local network
+Cisco IOS: show arp
+Linux: arp -a
+Windows: Get-NetNeighbor
+
+// Show the routing table, which contains information about how to reach different network destinations
+Cisco IOS: show ip route
+Linux: route -n
+Windows: Get
+
+// A DNS lookup utility that can be used to query DNS servers for information about domain names and IP addresses
+Cisco IOS: show ip dns
+Linux: nslookup <domain name>
+Windows: Resolve-DnsName <domain name>
+
+// A versatile tool for testing network connections, including TCP and UDP connections, port scanning, and file transfers
+Cisco IOS: ping <destination IP address> source <source IP address>
+Linux: nc -vz <destination IP address> <port number>
+Windows: Test-NetConnection <destination IP address> -Port <port number>
+
+// Display information about the network interfaces on a device, including their status and configuration
+Cisco IOS: show interfaces status
+Linux: ip link show
+Windows: Get-NetAdapter
+
+// Display information about the wireless network interfaces on a device, including their status and configuration
+Cisco IOS: show interfaces dot11Radio
+Linux: iwconfig
+Windows: Get-NetAdapter -Wireless
+
+// Display information about the DHCP leases assigned to a device
+Cisco IOS: show ip dhcp binding
+Linux: dhcpd-pools -c /etc/dhcp/dhcpd.conf
+Windows: Get-DhcpServerv4Lease
+```
+
+
+# Linux
+-----
+[back to top](#sections)
+```sh
+# Display information about network interfaces, including IP addresses, netmasks, and MAC addresses
+ifconfig
+
+# Show and modify IP addresses, routes, and other network configuration settings
+ip address show
+ip route show
+
+# Send ICMP echo requests to a specified destination IP address to test network connectivity
+ping <destination IP address>
+
+# Show the path that packets take to reach a specified destination IP address, including the IP addresses of the routers along the way
+traceroute <destination IP address>
+
+# Display information about active network connections, including listening ports, established connections, and network statistics
+netstat -a
+
+# Display the ARP cache, which maps IP addresses to MAC addresses on a local network
+arp -a
+
+# Show the routing table, which contains information about how to reach different network destinations
+route -n
+
+# A DNS lookup utility that can be used to query DNS servers for information about domain names and IP addresses
+dig <domain name>
+
+# A more modern replacement for netstat that displays information about active network connections and sockets
+ss -a
+
+# A versatile tool for testing network connections, including TCP and UDP connections, port scanning, and file transfers
+nc -zv <destination IP address> <port number>
+```
+
+# Windows
+-----
+[back to top](#sections)
+```powershell
+# Display information about network interfaces, including IP addresses, netmasks, and MAC addresses
+Get-NetAdapter
+
+# Show and modify IP addresses, routes, and other network configuration settings
+Get-NetIPAddress
+Get-NetRoute
+
+# Send ICMP echo requests to a specified destination IP address to test network connectivity
+Test-Connection <destination IP address>
+
+# Show the path that packets take to reach a specified destination IP address, including the IP addresses of the routers along the way
+tracert <destination IP address>
+
+# Display information about active network connections, including listening ports, established connections, and network statistics
+Get-NetTCPConnection
+Get-NetUDPEndpoint
+
+# Display the ARP cache, which maps IP addresses to MAC addresses on a local network
+Get-NetNeighbor
+
+# Show the routing table, which contains information about how to reach different network destinations
+Get-NetRoute
+
+# A DNS lookup utility that can be used to query DNS servers for information about domain names and IP addresses
+Resolve-DnsName <domain name>
+
+# A versatile tool for testing network connections, including TCP and UDP connections, port scanning, and file transfers
+Test-NetConnection <destination IP address> -Port <port number>
+```
+
+

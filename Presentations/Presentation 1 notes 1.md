@@ -1,0 +1,5 @@
+- Face the audiance while speaking and explaining a slide (ally oop the crowd)
+- Keep hands out of your pockets
+- dont allow the questions to deviate from the point of the speech
+- attack any posible questions early on before there asked
+- start with the point behind the speech and end with how we talked about the speech.

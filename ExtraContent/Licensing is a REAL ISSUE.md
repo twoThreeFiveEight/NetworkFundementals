@@ -1,0 +1,1 @@
+- Companies will have to pay for licensing for the equipment they are running. The architectural design elements will be heavily weighted on the licensing.
