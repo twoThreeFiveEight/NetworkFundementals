@@ -751,8 +751,9 @@ ARP -> all layer3 devices will have a ARP table
 	- Arbitrary number that determines the preference of the route
 	- ***LOWER NUMBER IS PREFERED (MORE TRUSTED)
 		- This rule is opposite then the Longest match rule
-		
-[Image of Routing table]()
+![[20230414_105751.jpg]]
+
+
 
 (S means the IP was learned "statically")
 (C means the IP was learned "connected") !!!! Need clarification on connected and how it is obtained?
@@ -813,7 +814,6 @@ Hacking tip:
 	- Destination network
 	- Destination subnet mask
 	- Valid Next-hop IP address
-
 		- Destination network address 
 
 - Optional parameters:
@@ -982,10 +982,12 @@ show ip interface brief
 when a request it willl record its MAC address on its table and the port number that associates with the MAC address
 
 ## Packet and Frame review:
-- Frames do NOT have TTL (no loop prevention mechanism like with packets ) < Can cause broadcast storms
+- Frames do NOT have TTL (no loop prevention mechanism like with packets ) < Can cause broadcast storms.
 
-[picutre o packet and frame]
-[picture of storm]
+![[20230417_101159.jpg]]
+
+LOOP CAUSES STORM:
+![[20230417_101220.jpg]]
 
 ## Spanning tree protocol (STP -> Layer2)
 - Layer 2 protocol
@@ -1019,8 +1021,7 @@ when a request it willl record its MAC address on its table and the port number 
 		- BID
 		- root ridge RB
 - ##### Once each switch gets the BPDU from all other switches it will then determine which switch is the Root Bridge (RB) based on the switch with the lowest BID. (BID = Priority number + MAC address)
-
-[picture of root bridge example]
+![[20230417_111145 1.jpg]]
 Root bridge is the switch on the lower right. -> Lowest BID number.
 
 #### STP Port Roles (for determining what ports are blocked or deticated)
@@ -1044,9 +1045,10 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 	- redundent port
 	- needed where a loop is formed
 	- decided based on costs for traffic travel path to root bridge.
-[picture of STP port roles]
 
-[link cost picture STP port speed costs]
+![[20230417_104900.jpg]]
+
+![[20230417_110012 (2).jpg]]
 - ####  STP Port Speed Costs
 	- Faster link is the LOWER link cost.
 	- standard numeric values 
@@ -1058,9 +1060,7 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 |10 gbps|2|
 |10+gbps|1|
 
-
-
-[pictured example of how to determine root ports, designated port, blocked port]
+[![[20230417_111145.jpg]]
 
 #### STP Port States: (ALL PORTS GO THROUGH THESE PHASES)
 - Blocked (20s)
@@ -1385,8 +1385,7 @@ Need to configure the AD on the statics to be higher then the protocol desired.
 	- #### All other areas must attach to Area 0
 
 ### OSPF Router Types
-[picture of OSP ROUTER Types]
-
+![[20230420_114518.jpg]]
 - INTERNAL
 	- Has an interface in a single area
 	- if there is another interface connected to a different area that router is no longer considered a internal router type.
@@ -1621,6 +1620,8 @@ show ip ospf rib    // rib = routing information base.
 	- AS hop
 	- BGP = path vector unlike eigrp = distance vector or ospf = link-state, 
 	- calculates best path by the least amount of HOPS from one autonomous system to another (meaning network to network not router to router). It does not take into acoount the cost of the hops.
+
+![[20230424_103604.jpg]]
 [picture of GBP hops from AS to AS]
 
 ### AUTONOMOUS SYSTEM NUMBERS
@@ -1800,7 +1801,7 @@ show ip bgp neighbor [x.x.x.x] advertised-routes
 - NAT achieves its goal by using a valid registered IP address to represent the private address to the rest of the internet.
 
 - The NAT function changes the private IP addresses to publicly registered IP addressess inside each IP packet.
-[picture of NAT]
+![[20230424_130953.jpg]]
 
 - CLEVER NOTE: If two companies have overlapping IPs and one buys the other you can join them using NAT to avoid having to change the entire networks IP addressing to avoid the duplicate IP problem.
 
@@ -1818,7 +1819,7 @@ show ip nat translations
 show ip nat statistics
 ```
 
-[picture of pat cont.]
+![[20230424_132019.jpg]]
 
 ##### (OVERLOAD) PAT cont. CONFIGURATIONS
 ```c
@@ -1888,7 +1889,7 @@ show ip nat statistics
 - Max number of bundled ports = 8  (typically)
 - Speed cannot exceed max speed of single link
 - "**Etherchannel**" aggregate the traffic across all available active ports in the channel. Meaning it sends traffic evenly across the ports rather then sending many packets down only one line of the port-channel
-
+![[20230427_100016 1.jpg]]
 ### Bundling ports
 - Manual
 	- Mode "on"
@@ -1977,6 +1978,7 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 	- IP that isnt tied to a specific interface rather both redundancy routes via a logical interface.
 	- must be in the same subnet as the existing network 
 	- Sometimes called Standby IP
+![[20230427_102527 (2).jpg]]
 
 - Standby group
 	- Logical group of routers participating in a HSRP process
@@ -2039,6 +2041,8 @@ To list HSRP group configured for an interface
 show standby vlan <vlan ID>
 ```
 
+![[20230427_104931.jpg]]
+
 ### Dynamic Host Configuration Protocol (DHCP)
 - Purpose:
 	- Assign an IP and gateway to hosts -> avoids manual configuring IPs
@@ -2077,7 +2081,9 @@ EX: A pool of 10.0.0.0 255.255.255.0 with a loopback of 10.2.2.2 255.255.255.255
 	- Addresses in pools not to e given out
 - IP Helper Address
 	- Enable the DHCP relay on an interface
-[picture of DHCP]
+
+![[20230427_111619 1.jpg]]
+
 WE WILL NOT "EXCLUDE" THE LOOP BACK BECAUSE IT DOES NOT FALL INTO THE DHCP POOL IN THE ABOVE EXAMPLE
 
 ### Request process
@@ -2429,7 +2435,240 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 ----
 [back to top](#sections)
 
-### Subject: IPsec
+### Subject: IPsec/Tunneling 
+
+### In this Lecture
+- Netwrok Address Translation
+	- Static 1-1
+	- Dynamic NAT
+	- The Two above Create a pool of IPs
+- IPsec Tunnels
+	- Create a logical P2P connection between two remote sites
+	- Encrypted
+- Set of Standards & protocols that support secure communication as packet are transported across network boundries
+
+### NAT Referesher
+- NAT allows a host that does not have a valid, registered, globally unique IP address to communicate with other hosts through the internet.
+- NAT achieves its goal by using a valid registered IP address to represent the private address to the rest of the Internet.
+	- Recorded in out NAT table
+
+### NAT Refresher 
+- The NAT function changes the private IP addresses to Publicly registered IP address inside each IP packet
+
+![[Screenshot (54).png]]
+
+### Static NAT
+- Static NAT - A One-toone mapping
+- Requires one public address for each private address that needs to be translated
+
+![[Screenshot (52).png]]
+
+### Dynamic NAT
+- Dynamic NAT
+- Like static NAT, the NAT router creates a one-to-one mapping between an inside local and inside global address and changes the IP addresses in packets as they exit and enter the inside network
+- However, the mapping of an inside local address to an inside global address happens dynamically.
+- static = 1 to 1
+- Dynamic = Set of pools inside global addresses and defines matching criteria to determine which inside IP address should be translated with NAT.
+
+![[Screenshot (53).png]]
+
+### Static NAT
+CONFIGS:
+```c 
+interface g0/0
+ip address 10.1.1.3 255.255.255.0
+ip nat inside
+
+interface serial0/0/0
+ip address 200.1.1.251 255.255.255.0
+ip nat outside
+
+// ip nat inside source static <private IP> <public translation>
+ip nat inside source static <IP> <public IP>  
+ip nat inside source static <IP> <public IP>  
+```
+
+### Dynamic NAT
+CONFIGS:
+```c
+interface g0/0
+ip address 10.1.1.3 255.255.255.0
+ip nat inside
+
+interface serial0/0/0
+ip address 200.1.1.251 255.255.255.0
+ip nat outside
+
+access-list <1> permit host <10.1.1.2>
+access-list <1> permit 10.2.0.0 0.0.0.255
+
+ip nat pool <fred> 200.1.1.1 200.1.1.2 netmask 255.255.255.252
+ip nat inside source list <1> pool <fred> 
+```
+
+### IPsec Tunnels
+- Tunnels create a logical point to point connection between 2 devices that are not directly connected.
+- This is accomplished by utilizing existing valid routing paths
+	- Overlay/Underlay
+		- Underlay -> Physical network
+		- Overlay -> logical network
+		- Does not only encrypt & authenticate, but encapsulates packet into a new packet entirely.
+- Segregates Traffic
+- Encrypted 
+- Use Cases for tunnels
+	- B2B tunnel connecting two physically distant LANs
+	- Client VPN allows useers remote access to a network.
+
+## IKE Phases 1 (IKE_SA_INIT)
+- Initial tunnel built to manage the second phase
+	- Authenticate IPSEC peers & set up out secure channel
+- Establishes ISAKMP session
+	- Internet Security Association and Key Management protocol 
+		- Negotiation protocol that let our 2 hosts agree on how to build our IPSec AS's (Security Assocation)
+- Only management traffic passes through the phase 1 tunnel
+- Exchange of security Association (SAs) - MUST MATCH EXACTLY
+	- Hashing Algorithm
+		- HMAC (Hashed Mesage Authentication Codes)
+		- Hashing ensures identity of sender & the integrity of our data
+			- Remember testing the ISO images with the hash keys using grep.
+	- Authentication Method
+		- some different types:
+			- RSA signature
+			- Pre-shared key
+	- Diffie Hellman Group
+		- Magic happens here! MATH
+		- Method of securely exchanging our cryptographic  keys over a public channels
+		- sent publically but 
+		- Group # defines strentgh of encrption-key determines algorithm
+	- Encryption Method 
+Phases of phase 1: -> SA exchange -> Established -> Management Traffic flows
+
+### IKE Phase 2
+- Tunnel encapsulated inside of phase 1 tunnel
+- Data flows through this tunnel from one end point to the other
+- Seperate set of SAs -> MUST MATCH ON BOTH SIDES
+	- Protocol - AH or ESP
+	- Encapsulation Algorithm - DES, 3DES, AES
+	- Authentication Algorithm - MD5, SHA
+	- Perfect Forward Secrecy (Optional)
+
+Phases of phase2: 
+Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
+
+### IKE v1 vs v2
+- V1 uses more bandwidth
+- V2 supports EAP authentication
+- V2 has NAT traversal built in
+- V2 has a built-in keep alive mechanism to keep the tunnel up
+
+### Encryption Types
+- What is encryption?
+	- The process of converting information or data into a code especially to prevent unauthorized access
+- 3 Mehtods of encryption
+	- DES - Least Secure
+	- 3DES (Triple DES) - Medium Security
+	- AES - most Secure
+		- NSA is actively trying to break this encryption method
+
+### Authentication Methods
+- What is Authentication?
+	- Verifyig the devices are who they say they are utilizing either a Preshared Key (PSK) or Certifcate - Verification of Authenticity by the Manufacturer
+- 2 Authentication Mehtods
+	- AH - Athentication Header 
+		- unsecured
+		- provides authentication only
+			- HMAC-MD5
+			- HMAC-SHA
+	- ESP - Encapsulating Security Payload
+		- Can be Secured
+			- Uses same Hashing algorithms as HH but does not only authenticate outer IP header it looks at the IP datagram (data) portion.
+
+### Transport and Tunnel Mode
+- 2 Modes of operation
+	- Transport Mode
+		- Uses the original IP header
+	- Tunnel Mode
+		- Generates new IP header by encapsulating  existing packet
+		- This mode is commonly used for site to site (B2B) VPNs die to needing to connect private address networks together 
+			- DONT BREAK THE INTERNET
+				- DO NOT SEND OUR PRIVATE IPs TO INTERNET NETWORK
+
+### Hashing
+- What is hashing
+	- Hashing is the process of transforming any given key or a string of characters into another value
+	- This is usually represented by a shorter, fixed-length value or key that represents and makes it easier to find or employ the original string
+	- algorithm used to verify the integrity of packets
+- Hashing methods
+	- MD5
+	- SHA -Utilizes Diffie Hellman (DH) Groups
+		- Higher numbers are more secure, but more computationally expensive.
+		- sha256 < sha512
+
+### VTI (virtual Tunnel interface)
+- Logical layer 3 interface
+- Used as endpoint for tunneling protocols
+- Can be statically or dynamically defined
+	- Dynamic is typically used for hub and spoke topologies like in DMVPN
+
+### CONFIGURATIONS:
+
+Create ISAKMP Policy (Phase 1)
+```c
+crypto isakmp policy 1
+encryption <AES>
+authentication <pre-share>
+group <16> // diffie hellman group
+```
+
+Set PSK for the Destination
+```c
+crypto isa kmp key <test> address <63.2.29.18>
+```
+
+Set the Phase 2 Parameters
+```c
+crypto ipsec transform-set <Aston_SIC> <esp-aes> <esp-sha512-hmac>
+mode <tunnel/transport> 
+```
+
+Apply your policies
+```c
+crypto ipsec profile <Aston_SIC>
+set transform-set <Aston_SIC>
+```
+
+Create the VTI
+```c
+interface tunnel<0>
+ip address <192.168.29.1> <255.255.255.0>
+tunnel source <g0/0>
+tunnel destination <63.2.29.18>
+tunnel mode <ipsec> <ipv4?
+tunnel protection <ipsec> profile <Aston_SIC>
+no shut
+```
+
+Create routing to your destination Subnet pointing to the tunnel
+```c 
+ip route 10.2.29.0 255.255.255.0 tunnel<0>
+```
+
+### VERIFICATIONS:
+
+To test reachability and the path taken
+```c 
+ping/traceroute
+```
+
+Detailed view of local crypto endpoint and remote crypto endpoint, used to establish if tunnel has been created and is functioning
+```c
+show crypto ipsec sa
+```
+
+show the souce, destination and status of the tunnel
+```c
+show crypto isakmp sa
+```
 
 
-
+### Whats the ipsec: TO CREATE A logical peer to peer connection between sites while securing traffic
