@@ -10,6 +10,7 @@
 [Lecture9](#lecture9) -> Redundancy
 [Lecture10](#lecture10) -> Filtering
 [Lecture11](#lecture11) -> IPsec
+[Side Notes](#side%20notes)
 
 ## Interesting To Note
 ----
@@ -549,7 +550,8 @@ ip <10.0.0.4> <255.255.255.248> <10.0.0.1>
 	1. Router connected to 2 switches
 	2. Router-on-a-stick
 		1. SUB-INTERFACES ONLY EXIST IN THIS METHOD
-			1. SUB-INTERFACES ARE USED TO LEVERAGE CONFIGURATION OF MULTIPLE INTERFACES ON A SINGLE PORT (INTERFACE).
+			1. logical interface that allows multiple interfaces with different IP addresses to be tied to a single physical interface.
+			2. SUB-INTERFACES ARE USED TO LEVERAGE CONFIGURATION OF MULTIPLE INTERFACES ON A SINGLE PORT (INTERFACE).
 	3. inter-VLAN routing using a Layer3 switch/Multilayer switch
 
 # ! 
@@ -1063,18 +1065,17 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 [![[20230417_111145.jpg]]
 
 #### STP Port States: (ALL PORTS GO THROUGH THESE PHASES)
-- Blocked (20s)
-	- Blocked port, but able to recieve BPDUs -> still up for redundnacy 
-	- Stable state listening for BPDUs/ does not forward Data
-- Listening (15s)
-	- Blocked , but communicating via BPDUs
-	- Tansitional state, listening and sending BPDUs
-- Learning (15s)
-	- Blocked, but allowing traffic to populate MAC table
-	- Transitional state, listening/ sending BPDUs, Learns MAC address but does not forward data
-- Forwarding 
-	- Normal forwarding port
-	- stable state listening/sending BPDUs + Forwards data.
+Blocked (20s)  
+    - Blocked port, but able to receive BPDUs -> still up for redundancy    - Stable state listening for BPDUs/ does not forward Data  
+- Listening (15s)  
+    - Blocked, but communicating via BPDUs  
+    - Transitional state, listening, and sending BPDUs  
+- Learning (15s)  
+    - Blocked, but allowing traffic to populate the MAC table  
+    - Transitional state, listening/ sending BPDUs, Learns MAC address but does not forward data  
+- Forwarding  
+    - Normal forwarding port  
+    - stable state listening/sending BPDUs + Forwards data.
 	
 - WE CAN SKIP THE 50 SECONDS THIS PROCESS TAKES BY PROGRAMMING OUR PORTS TO SKIP BLOCKED, LEARNING, AND LISTEN PHASE. - Spanning tree Portfast
 
@@ -1095,7 +1096,8 @@ MULTI SPANNING TREE
 - portfast is an extention of the STP protocol and not the STP its self.
 - "Access" ports only 
 - Spanning Tree Portfast
-	- Forces port to skip all states and go directly into forwarding
+	- Forces port to skip listening and learning states and go directly into forwarding
+	- Does not skip blocked state
 To configure: Spanning-Tree portfast:
 ```c
 // global port portfast selection on all ports
@@ -1119,11 +1121,11 @@ spanning-tree portfast
 
 ```c
 // global configuration of BPDU gaurd
-spanning-tree bpdu gaurd default
+spanning-tree bpduguard default
 
 // individual config of BPDU gaurd
 int g0/0 
-spanning-tree bpdu gaurd
+spanning-tree bpduguard enable
 ```
 
 # Lecture6
@@ -1202,6 +1204,8 @@ OSPF = Link-State
 
 
 ## Network Statements:
+[network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
+
 - Tells EIGPR 3 things
 	- Which interfaces to accept traffic in
 		- Tells which interface to accept routing protocol packets (hello messages)
@@ -1398,6 +1402,8 @@ Need to configure the AD on the statics to be higher then the protocol desired.
 	- meaning a router that in between two different protocols as well as areas.
 
 ### Network Statements
+[network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
+
 - This is a line of code we need to figure out and add to the interface of the router.
 - Tells OSPF 3 things:
 	- Which interfaces to accept traffic in
@@ -1595,7 +1601,7 @@ show ip ospf rib    // rib = routing information base.
 ### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
 #### BGP
-- Border gateway prot ocol
+- Border gateway protocol
 	- Exterior Gateway Protocol
 	- Routing protocol of the internet
 	- two types of BGP
@@ -1644,6 +1650,8 @@ show ip ospf rib    // rib = routing information base.
 - "***FILTERING***" routes in BGP we utilize BOTH "***prefix-lists***" & "***route-maps***"
 
 ### NETWORK STATEMENTS
+[network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
+
 - Must match an EXACT prefix
 - add/inject routes to the BGP table from Routing table
 - Doesn't interfere with neighbors like iBGPs
@@ -1658,7 +1666,7 @@ show ip ospf rib    // rib = routing information base.
 ### ADVERTISE SUMMARY NETWORKS
 - ##### Exact prefixes must exist in routing table
 	- use a null route
-		- null route is a "fake" route that we use to add summarized networks to our routing table for BGP  to ensure that the exact prefix is in the routing table.
+		- null route is a "fake" route that we use to add summarized networks to our routing table for BGP to ensure that the exact prefix is in the routing table.
 	- NULL route
 		- Route to nowhere
 		- Packets matching this route will be dropped
@@ -1861,9 +1869,6 @@ show ip nat statistics
 ```
 
 
-
-
-
 # Lecture9
 ----
 [back to top](#sections)
@@ -1965,7 +1970,7 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 [difference between HSRP and VRRP (redundancy protocols)]
 
 ### Types of First Hop Redundancy Protocols
-##### Hot Standby Router Protocol
+##### Hot Standby Router Protocol (HSRP)
 - Purpose
 	- Provide gateway redundancy
 	- ***Allow traffic to flow through the redundant route in the event of a device/ link failure
@@ -2045,13 +2050,12 @@ show standby vlan <vlan ID>
 
 ### Dynamic Host Configuration Protocol (DHCP)
 - Purpose:
-	- Assign an IP and gateway to hosts -> avoids manual configuring IPs
+	- Dynamically assign an IP address, default gateway, and DNS server to hosts instead of having to do this manually for each host.
 	- Easy IP address management at scale
 - Cons
 	- You can forget to exclude some addresses and will be assigning IPs to devices we want to remain static.
 	- may run out of IP address to give if we have long of a lease.
 		- example: a smaller subnet that is in a area that is transity like guest wifi. IF we set the timer to 5 days and the subnet gets filled up by a bunch of users being in that area then when they leave they leave with that ip so if a new client shows up they may not e assigned a new IP because they are all taken until the LEASE runs out.
-	
 
 - ##### DHCP Does not give out IP addresses it "***LEASES***" them. There is a timer for how long a IP is given to a end point. The timer is up to the engineers discression. 
 
@@ -2438,7 +2442,7 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 ### Subject: IPsec/Tunneling 
 
 ### In this Lecture
-- Netwrok Address Translation
+- Network Address Translation
 	- Static 1-1
 	- Dynamic NAT
 	- The Two above Create a pool of IPs
@@ -2458,7 +2462,7 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 ![[Screenshot (54).png]]
 
 ### Static NAT
-- Static NAT - A One-toone mapping
+- Static NAT - A One-to-One mapping
 - Requires one public address for each private address that needs to be translated
 
 ![[Screenshot (52).png]]
@@ -2515,9 +2519,14 @@ ip nat inside source list <1> pool <fred>
 		- Does not only encrypt & authenticate, but encapsulates packet into a new packet entirely.
 - Segregates Traffic
 - Encrypted 
-- Use Cases for tunnels
-	- B2B tunnel connecting two physically distant LANs
-	- Client VPN allows useers remote access to a network.
+- ##### Use Cases for tunnels
+	- B2B tunnel connecting two physically distant LANs (business to business/ B2B)
+	- Client VPN allows users remote access to a network.
+	
+	- Client VPN is used to allow remote users access to the network.
+	- B2B VPN is used to connect two entities or sites within an entity.
+		- You used a IPsec tunnel in your environment.
+		- Tunneling traffic is generally used to allow traffic that is using private addresses to traverse the internet usually in site-to-site capacity. It can also be used during a Merger and Acquisition (M+A) where you might have two networks that use the same IP space, you can use a tunnel to traverse the overlapping network to prevent the need for NAT or complete IP addressing overhaul. You used a IPsec tunnel in your environment.
 
 ## IKE Phases 1 (IKE_SA_INIT)
 - Initial tunnel built to manage the second phase
@@ -2539,7 +2548,7 @@ ip nat inside source list <1> pool <fred>
 		- Magic happens here! MATH
 		- Method of securely exchanging our cryptographic  keys over a public channels
 		- sent publically but 
-		- Group # defines strentgh of encrption-key determines algorithm
+		- Group # defines strenght of encryption-key determines algorithm
 	- Encryption Method 
 Phases of phase 1: -> SA exchange -> Established -> Management Traffic flows
 
@@ -2672,3 +2681,11 @@ show crypto isakmp sa
 
 
 ### Whats the ipsec: TO CREATE A logical peer to peer connection between sites while securing traffic
+
+
+## Side Notes
+-----
+[back to top](#sections)
+
+#### You can add a `description` to every interfaces
+- [More about descriptions here](#obsidian://open?vault=network%20fundementals&file=Descriptions%20for%20interfaces)

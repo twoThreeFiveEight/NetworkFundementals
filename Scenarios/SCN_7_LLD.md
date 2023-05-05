@@ -28,21 +28,27 @@ tunnel mode ipsec ipv4
 tunnel destination 180.3.29.18
 tunnel protection ipsec profile Aston_SIC
 
-ip prefix-list SEC_IN seq 10 permit 180.3.29.18/24
-route-map SEC_IN permit 10               // create route map
-match ip address prefix-list SEC_IN
+// IN prefixes
+ip prefix-list SIC_IPsecPrefixes_IN seq 10 permit 192.168.29.0/24
+ip prefix-list SIC_IPsecPrefixes_IN seq 20 permit 10.3.29.0/24
+// route map ipsec IN
+route-map SIC_IPsecRouteMap_IN permit 10               
+match ip address prefix-list SIC_IPsecPrefixes_IN
 
-ip prefix-list ASTON_OUT seq 10 permit 63.2.29.18/24
-route-map ASTON_OUT permit 10               // create route map
-match ip address prefix-list ASTON_OUT
+// Out prefixes
+ip prefix-list ASTON_IPsecPrefixes_OUT seq 10 permit 192.168.29.0/24
+ip prefix-list ASTON_IPsecPrefixes_OUT seq 20 permit 10.2.29.0/24
+// route map IPsec out
+route-map ASTON_IPsecRouteMap_OUT permit 10              
+match ip address prefix-list ASTON_IPsecPrefixes_OUT
 
 // router bgp
 router bgp 129                 // can have multiple neighbors under one AS
 neighbor 180.3.29.18 remote-as 229
 neighbor 180.3.29.18 ebgp-multihop 2
 neighbor 180.3.29.18 soft-reconfiguration inbound
-neighbor 180.3.29.18 route-map SEC_IN in
-neighbor 180.3.29.18 route-map ASTON_OUT out 
+neighbor 180.3.29.18 route-map SIC_IPsecRouteMap_IN in
+neighbor 180.3.29.18 route-map ASTON_IPsecRouteMap_OUT out 
 // 
 // need a static route 
 ip route 10.3.29.0 255.255.255.0 tunnel0
