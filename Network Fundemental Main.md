@@ -12,6 +12,8 @@
 [Lecture11](#lecture11) -> IPsec
 [Side Notes](#side%20notes)
 
+
+
 ## Interesting To Note
 ----
 #### ROUTERS:
@@ -28,12 +30,16 @@ ROUTING TABLE POPULATION METHODS:
 - Static Routes
 	- Routes Manually provided by an administrator
 	- can be straight to a subnet or a summerization of many subnets.
+```c
+ip route <network address> <network subnet mask> <next hop>
+```
+
 - Dynamic routes
 	- Learned Automatically from other routers.
 	- OSPF, EIGRP, BGP, IS-IS, RIP -> common protocols
 
 #### SWITCHES
-- Switches cannot do inter VLAN routing.
+- Switches cannot do inter VLAN routing. They need to pass the information up to a mls or a router.
 	- In other words even if a computer is using the same switch they are technically different networks and need a router to send one packet from vlan 1xx0 to 2xx0. The switch cannot make this happen, There for a switch cannot do inter VLAN routing.
 
 ## Lecture1
@@ -132,19 +138,34 @@ The amount of unique hosts that can exist on a network 
 
 Hosts - Must have a unique IP address 
 
-### Reserved IP Addresses 
+### Reserved IP Addresses on a subnet
 -   Network IP 
 -   Broadcast IP
 
-## Lecture2
+
+
+# Lecture2
 ----
 [back to top](#sections)
-### Subject: Basic switching
-Overview: Broadcast, Vlans, SVI's, Switchport modes, packets & frames, Mac Address tables.
 
-### CDP, LLDP = Layer 2 network discovery protocols
+##### Subject: Basic switching
 
-### Duplexes (talking about wiring configs):
+##### Overview: 
+- [Duplexes](#duplexes)
+- [Domains](#domains)
+	- Collision
+	- Broadcast 
+- [VLAN](#vlan%20(Virtual%20Local%20Area%20Network))
+- [SVI](#svi)
+- Switchport modes 
+- packets & frames
+- Mac Address tables.
+- #### CDP, LLDP = Layer 2 network discovery protocols
+
+
+### Duplexes 
+----
+(talking about wiring configs)
 - Full Duplex (***Bidirectional***):
 	- Simultaniously transmits & receive data
 	- seperate wires for transmiting and receiving
@@ -157,7 +178,9 @@ Overview: Broadcast, Vlans, SVI's, Switchport modes, packets & frames, Mac Addre
  
 ![[duplexes.png]]
 
-### Domains:
+
+### Domains
+----
 - #### Collision Domain:
 	- Locations where collisions can occur
 	- Shared media, single cable, hubs
@@ -183,7 +206,10 @@ Overview: Broadcast, Vlans, SVI's, Switchport modes, packets & frames, Mac Addre
 | COLLISION | Same | Seperate | Seperate |
 | BROADCAST| Same | Same | Seperate |
 
-### VLAN (Virtual Local Area Network):
+
+
+### VLAN (Virtual Local Area Network)
+----
 - PURPOSE -> Limit broadcast domains
 - Logically created (Created with software)
 - Layer2 segmentation of a switch -> Limit broadcast domain.
@@ -193,7 +219,8 @@ Overview: Broadcast, Vlans, SVI's, Switchport modes, packets & frames, Mac Addre
 - DO NOT USE VLAN 1 -> Because it is CISCO DEFAULT & is bad practice
 - Range 1 - 4096 unique VLANs
 
-##### VLAN Configuration:
+#### VLAN Configuration:
+----
 - For each VLAN you need to create (1 - 4096)
 ```c
 vlan <VLAN_ID>
@@ -204,6 +231,7 @@ name <NAME>
 ```
 
 ##### VLAN Verification: 
+-----
 - To list all configuration VLANs, Access ports, & VLAN status
 ```c
 show vlan brief
@@ -217,19 +245,22 @@ show vlan
 show vlan id <VLAN_ID>
 ```
 
-### Switch Port Modes 
+
+
+### Switch Port Modes (for VLAN)
+---
 - Only pertains to the Switch
 - ONLY 2 OPTIONS:
 	- Access
 	- Trunk
 
-##### Access:
+#### Access:
 - Single Vlan -> Part of only one vlan
 - Typically connects to hosts/ end devices
 	- ACCESS MODE WILL NOT CARRY VLAN TAG
 - Associates data to VLAN
 
-##### Trunk:
+#### Trunk:
 - Multiple VLANs -> Carry one or more VLANs on the same physical link
 - Uses 802.1q encapsulation
 	- encapsulates packets using 802.1q protocol with a TAG to identify the VLAN on layer2 
@@ -237,8 +268,10 @@ show vlan id <VLAN_ID>
 - connects VLANs between switches
 - TYPE OF INTERFACE CONFIGURED ON A SWITCH OPPOSITE A ROUTER'S SUB-INTERFACE. (REMEMBER SUB-INTERFACES ONLY EXIST ON A ROUTER-ON-A-STICK ARCHITECTURE'S)
 
-### Configurations:
 
+
+### Configurations:
+---
 ##### Access port configurations commands:
 - For each port to be a access port
 ```c 
@@ -251,8 +284,10 @@ switchport mode access
 switchport access vlan <VLAN_ID>
 ```
 
-##### Access Port Verification commands:
 
+
+### Access Port Verification commands:
+----
 To show all interfaces, VLAN and status info
 ```c 
 show ip interface status
@@ -275,8 +310,10 @@ show running-config interface <fastEthernet 0/1>
 show run int g0/0
 ```
 
-##### Trunk port config commands: 
 
+
+### Trunk port config commands: 
+----
 For each interface to be trunk
 
 ```c
@@ -293,8 +330,10 @@ Swtich(config-if)# switchport trunk allowed vlan <10,20,30-40,50>
 ```
 when doing ranges you can use the commas ( 10,20 ) with no space inbetween or you can you the hyphen ( - ) to seperate the ranges.
 
-##### Trunk Port Verification commands:
 
+
+### Trunk Port Verification commands:
+---
 To list all trunk interfaces and the allowed vlans:
 ```c
 show interface trunk
@@ -310,7 +349,10 @@ To show running configurations of the interface:
 show running-config interface <fastEthernet 0/2>
 ```
 
-#### Switch Virtual Interface ( SVI ):
+
+
+### Switch Virtual Interface ( SVI ):
+---
 Just an interface to remote connection to the ports:
 
 - Switch Virtual Interface:
@@ -326,9 +368,11 @@ Just an interface to remote connection to the ports:
 	Q: On layer 3 what is SVI used for?
 	- L3 = Default Gateways
 
-#### SVI Configuration:
-- For each SVI to be created:
 
+
+#### SVI Configuration:
+----
+- For each SVI to be created:
 - ***VLAN MUST ALREADY BE CONFIGURED***
 
 VLAN Creation  (***NEEDS TO BE FIRST***)
@@ -354,8 +398,10 @@ switch(config)# ip address <IP_ADDRESS> <SUBET MASK>
 switch(config)# no shut (turn this on)
 ```
 
-#### SVI Verification:
 
+
+#### SVI Verification:
+----
 To show all configured VLANs:
 ```c
 show vlan brief
@@ -378,9 +424,10 @@ show running-config interface vlan <100>
 
 ![[20230412_115611.jpg]]
 
-### Packets & Frames:
 
-#### Layer 3 Packet (Smaller then Layer2 Frame) (IP):
+
+### Layer 3 Packet (Smaller then Layer2 Frame) (IP):
+----
 - source IP address
 - Destination Address
 - TTL : L3 = loop prevention mechanism
@@ -388,8 +435,12 @@ show running-config interface vlan <100>
 
 ![[20230412_131156.jpg]]
 
-#### Layer 2 Frame (bigger then layer 3 packet)(MAC):
+
+
+### Layer 2 Frame (bigger then layer 3 packet)(MAC):
+----
 - Destination MAC Address
+	- FF:FF:FF:FF:FF:FF -> Is the destination MAC for the ARP requests at first. Before it knows the default gateway MAC address.
 - Source MAC Address
 - Type 
 	- VLAN tag (802.1q)
@@ -403,7 +454,10 @@ show running-config interface vlan <100>
 	
 ![[20230412_131642.jpg]]
 
+
+
 ### MAC Address Table (Layer2):
+----
 - ***Ties physical port to MAC address.***
 - Unique Physical identifier
 - Updates when frames com into port
@@ -412,7 +466,7 @@ show running-config interface vlan <100>
 ![[20230412_132618.jpg]]
 
 ##### Commands :
-
+---
 To look at the MAC table
 ```c
 show mac adddress-table
@@ -428,24 +482,25 @@ To show the MAC table for a specific VLAN:
 show mac address-table vlan <VLAN_ID>
 ```
 
+
 ### Switch Forwarding Decisions:
+----
 - ***Unicast***
 	- 1 to 1
 	- private direct message
 - ***Broadcast***
 	- 1 to all
 	- global message to all connected devices on vlan
-
-not as important
 - Flood
 	- 1 to all*
-	- special use case
+	- special use case like ARP
 - multicast
 	- 1 to many*
 
-### Device Access:
--how we connect to communicate with devices
 
+### Device Access:
+----
+- how we connect to communicate with devices
 - Out-of-band
 	- Physical connection
 	- Console cable
@@ -454,42 +509,38 @@ not as important
 	- SSH/Telnet
 
 ### ICMP commands (internet control message protocol)
+---
 
 - Tests L3 connectivity between 2 hosts
 	- source host sends a ***"ping"***
 	- Destination replies with a "ping"
 
-##### Syntax:
-switch
 ```c
 Switch# ping <IP_ADDRESS>
 ``` 
 
 traceroute DONT FORGET ABOUT THIS ONE, VERY USEFUL
 ```c 
-Traceroute# traceroute <ip_address> (cisco ios)
-```
+traceroute <ip_address>                    // (cisco ios)
+trace
 
-windows
-```c
-windows# tracert
-```
-
-linux
-```c
-LinuxUser$ traceroute
+windows# tracert <ip_address>              // windows
+LinuxUser$ traceroute <ip_address>         // linux
 ```
 
 
-## Lecture3
+
+
+# Lecture3
 ----
-[back to top](#sections)
-
 ### SUBJECT: BASIC LAYER 3
 
+[back to top](#sections)
 [TEST PREP](obsidian://open?vault=network%20fundementals&file=Leture%203%20quiz%20pre-review)
 
 ### TABLES:
+---
+
 ##### MAC Address Table:
 - Binds our L1 (Physical) to our L2 (DataLink)
 - Port number to MAC Adress
@@ -512,28 +563,35 @@ Windows/ Linux
 arp -a
 ```
 
-### ARP (adress resolution table):
-- Protocol that populates the ARP table
+
+### ARP (adress resolution Protocol):
+- Protocol that populates the ARP table 
+- FF:FF:FF:FF:FF:FF broadcast MAC-> Is the destination MAC for the ARP requests at first. 
 - How a device knows which MAC address to use
 	- MAC address are 100% necessary for sending traffic
 - ARP cache contains a record of each MAC mapped to each IP
-
-Photo note: 
-- if MAC address is a F's then it is a broadcast address. 
-	- I.E MAC -> FFFF.FFFF.FFFF.FFFF
-	- this is like the broadcast IP but on layer2
+- If MAC address is all F's then it is a broadcast address. 
+	- I.E. MAC = FFFF.FFFF.FFFF.FFFF
+	- This is like the broadcast IP but on layer2
+	- THIS IS THE ADDRESS A ARP REQUEST BROADCAST ON AS ITS DESTINATION MAC ADDRESS TO FIND THE SWITCH BEFORE THE DEFUALT GATEWAY MAC ADDRESS GETS RESOLVED.
 
 ![[20230413_101818.jpg]]
 
 ![[20230413_101855.jpg]]
+
+
+
 ### Default Gateway:
+---
 - Hosts need a default gateway to send traffic outside of thier own subnet
 - Gateway must be an IP on the local subnet
 - Packets destined for a different network are sent to the gateway
 - First Layer3 device on the VLAN network is the gateway. 
 - Ip address we utilize to send local traffic off to another network
 
+
 ### Host Configuration:
+---
 - IP address- host ID
 - Subnet mask - defines network
 - Default gateway - how to leave the network
@@ -545,51 +603,47 @@ ip <10.0.0.4> <255.255.255.248> <10.0.0.1>
 // ip <IP> <subnet> <default gateway>
 ```
 
+
 ### Routing Between Subnets
+----
 - 3 Methods:
 	1. Router connected to 2 switches
 	2. Router-on-a-stick
-		1. SUB-INTERFACES ONLY EXIST IN THIS METHOD
+		1. SUB-INTERFACES EXIST ONLY ON ROUTER-ON-A-STICK AND MPLS (LAYER 2 VPN) TOPOLOGIES.
 			1. logical interface that allows multiple interfaces with different IP addresses to be tied to a single physical interface.
 			2. SUB-INTERFACES ARE USED TO LEVERAGE CONFIGURATION OF MULTIPLE INTERFACES ON A SINGLE PORT (INTERFACE).
 	3. inter-VLAN routing using a Layer3 switch/Multilayer switch
 
-# ! 
-( Trunk is a configuration inside a switch where router on a stick is a topology and not the same. )
-
-#### 1. Router + 2 switches:
+Router + 2 switches routing between two subnets
 ![[20230413_103427.jpg]]
 
-#### 2. Router-on-a-stick:
+
+
+### Sub interfaces/ Router-on-a-stick
+---
+- Are only used on router-on-a-stick. The other subnet routing methods do not use sub interfaces.
+	- Ignore the next sentance if you are in NF -> MPLS which is a layer2 vpn that traverses the internet on predfined paths while never opening up the layer3 packet also uses sub-interfaces on a router.
+
+- Router-on-a-stick configuration.
 ![[20230413_103444.jpg]]
 
-- ##### Sub interfaces are only used on router-on-a-stick. The other subnet routing methods do not use sub interfaces.
 
-- **Sub interface configuration:**
-	- Configure the physical interface
+
+### Sub interface configuration
+---
+- Configure the physical interface
 ```c
 interface gigabitEthernet 0/0
-```
-```c
 no ip address
-```
-```c
 no shutdown
 ```
 
 - Configure virtual interfaces
 ```c
 interface gigabitEthernet <0/0.10>
-
-// <interface/number.VLAN_ID>
-```
-```c
-encapsulation dot1q <10>
-// <VLAN_ID>
-```
-```c
+encapsulation dot1q <VLAN_ID>                    // Sub interfaces use 802.1q 
 ip address <10.10.0.1> <255.255.255.0>
-// ip is referencing the ip associated with the above VLAN
+no shutdown
 ```
 
 - **Verification commands (router-on-a-stick)
@@ -610,9 +664,9 @@ show ip route
 ```
 
 
-#### 3. inter-VLAN routing using a Layer3 switch/Multilayer switch
-![[IMG-20230414-WA0008.jpg]]
-##### Layer 3 Switches/Multilayer
+
+### Layer 3 Switches/Multilayer
+---
 - Switched that can also route
 - Route traffic between VLANs using SVIs
 - benifits:
@@ -628,9 +682,12 @@ Remember:
 - If you see a routing able on a switch it is Layer3
 - if DO NOT see a routing table on the switch it is layer 2
 
-[Picture of inter-VLAN routing]()
+![[IMG-20230414-WA0008.jpg]]
 
-##### L3 Switch  Enable /Configuration: 
+
+
+#### L3 Switch  Enable /Configuration: 
+----
 - If the switch is able to do layer3 routing you will need to enable the routing feature:
 
 Enable routing on switch:
@@ -638,14 +695,12 @@ Enable routing on switch:
 ip routing
 ```
 
-# !
-**NEED TO CONFIGURE VLANS FIRST
+#### ! **NEED TO CONFIGURE VLANS FIRST !
 ```c
 // This needs to be declared before configuring SVI regardless of L2 or L3
 vlan <1290>
 name management
 ```
-# !
 
 Configure each SVI
 ```c
@@ -661,7 +716,10 @@ interface vlan <20>
 ip address <10.20.0.1> <255.255.255.0>
 ```
 
-##### L3 Switch Verification:
+
+
+#### L3 Switch Verification:
+----
 
 To check if routing is a function:
 ```c
@@ -677,7 +735,10 @@ show running-config | <OPTION> <ip-routing>
 // include, exclude, section, begin, end
 ```
 
+
+
 ### Loopback Interfaces:
+----
 - Loopbacks are for remote management
 - Logical interface primarily used for managment purposes
 - Always in UP/UP state
@@ -685,8 +746,9 @@ show running-config | <OPTION> <ip-routing>
 	- you want the loopback on its own network so you are using the /32 for the subnet because you eliminate the possibility of anything else on the network. 
 		- Remember /32 only has one host on the network.
 
-##### Loop back interface configurations:
 
+##### Loop back interface configurations:
+---
 Create new loopback interface:
 ```c
 interface loopback <0>
@@ -697,6 +759,7 @@ ip address <10.1.1.1> <255.255.255.255>
 ```
 
 ##### Loopback interface verification:
+----
 
 To check interface status:
 ```c 
@@ -709,11 +772,12 @@ show ip interface <loopback> <0>
 ```
 
 
+
 # Lecture4
 -----
 [back to top](#sections)
 
-## Subject: General Routing
+### Subject: General Routing
 
 ##### Overview: 
 - Routing Table
@@ -724,17 +788,20 @@ show ip interface <loopback> <0>
 - Cisco Discovery Protocol/LLDP
 - internet Control Message Protocol ICMP
 - Route summerization
+##### ARP -> all layer3 devices will have a ARP table
 
-ARP -> all layer3 devices will have a ARP table
 
-## What is routing?
+### What is routing?
+---
 - Moving packets - containing data - through a network
 	- Process of moving packets through out network
 - #### Source & Destination
 	- #### routing relies on ***source/destination*** IP's
 - Routers route many, many packets per second
 
-## Routing table:
+
+### Routing table:
+----
 - List of next-hop IPs for destination networks
 - Lists all the networks a router knows about
 	- Route entry for each active interface
@@ -745,32 +812,41 @@ ARP -> all layer3 devices will have a ARP table
 	- direct connected routes 
 - You want to make redundancy
 	-  Do not have single points of failure.
-
 - Origin code
 	- How the router learned of the route
 	- connected, static, OSPF, EIGRP, RIP, BGP, etc.
-- Administrative Distance (TRUST)
+	- S, O, C, L 
+		- S means the IP was learned "statically"
+		- C means the IP was learned "connected"
+- ##### Administrative Distance (TRUST)
 	- Arbitrary number that determines the preference of the route
 	- ***LOWER NUMBER IS PREFERED (MORE TRUSTED)
 		- This rule is opposite then the Longest match rule
-![[20230414_105751.jpg]]
 
 
-
-(S means the IP was learned "statically")
-(C means the IP was learned "connected") !!!! Need clarification on connected and how it is obtained?
-(S* "static" default route, last resort. You do not want to rely on this route)
-
-## Administrative Distance 
+### Administrative Distance 
+----
 - go [here](#why%20admin%20distance?) for what admin distance is doing
 
-[image of adim distance chart
-![[20230414_105217.jpg]]
-[route lookup process image]
+### why admin distance?
+----
+- when talking about routing protocols there are default administrative distances. Static routing protocol is a defualt of 1 where OSPF default is 110. So we use AD (administrative distance) to be able the configure a different routing protocol. The trusted protocol with AD is the lower value.
+- So to change the routing protocol from "static routing" to "OSPF" we increase static routing to any value above 110 (OSPF). In the examples of commands above we the last to last values are changing there administrative distance to select the desired routing protocol
 
-(router will drop the packet if it cannot find the IP in the table)
+Defaults
+- static routing = 1
+- ebgp = 20
+- eigrp = 90
+- OSPF = 110
+- ibgp = 200
+
+![[20230414_105217.jpg]]
+![[20230414_105751.jpg]]
+- #### Router will drop the packet if it cannot find the IP in the table
+
 
 ## Longest Match Rule
+----
 - Route with the longest/best match will be selected
 - Subnet mask of /0 or 0.0.0.0 is the shortest/worst match
 - Subnet mask of /32 or 255.255.255.255 is the longest/best match
@@ -782,36 +858,45 @@ ARP -> all layer3 devices will have a ARP table
 
 - The Longest-match-rule does not concern its self with the number of devices it will have to traverse. It only cares about the most specific route which is is the one with the highest CIDR.
 
+
 ## Static routes: -> WILL BE TESTED ON
-
-PROS AND CONS IS GOING TO BE ON THE TEST
+----
 - Manually add routes to routing table
-- A few Cons:
-	- Lack of scalability
-	- Lack of redundancy
-	- Higher chance of human error
-	- High administrative overhead
-- A few Pros:
-	- Lower CPU usage
-	- Mildly more secure
-		- less protocols that can be exploited.
-
-Hacking tip:
+- ##### ** TEST **
+	- A few Cons:
+		- Lack of scalability
+		- Lack of redundancy
+		- Higher chance of human error
+		- High administrative overhead
+	- A few Pros:
+		- Lower CPU usage
+		- Mildly more secure
+			- less protocols that can be exploited.
+##### Hacking tip:
 - One can inject IPs into a network that has dynamic routing to redirect there traffic. 
 
+
 ## Static routing Requirements
-- The next-hop IP address must be accessible, i.e. in a connected subnet
-- Valid Destination Network address
-- Valid Subnet size
+----
+- ##### All 3 requirements must be met for a route to be entered into the routing table
+	- The next-hop IP address must be accessible, i.e. in a connected subnet
+	- Valid Destination Network address
+	- Valid Subnet size
+```c
+ip route <network address> <subnet mask> <next hop> 
+```
 
- - ##### All 3 requirements must be met for a route to be entered into the routing table.
 
-
-### default route
+### Default route
+----
 - This is a route that matches all routes
 	- notation: 0.0.0.0/0
-	
-## Static routing Parameters:
+	- The routing because this subnet is the entire internet. The router will use the routing table to look for the destination IP of the packet. If the subnet for the destination IP is not found by the time it reaches the "default route" it will match the defualt route. 
+		- The default route is the gateway to the internet essentially. Without it the router would not know to send the packet out unless there was an exact subnet match.
+
+
+### Static routing Parameters
+---
 - 3 Mandatory parameters:
 	- Destination network
 	- Destination subnet mask
@@ -822,8 +907,11 @@ Hacking tip:
 	- Name
 	- Admin distance
 		-  Static route AD = 1
+			- If there is a static route inside the routing table you do not wish you make the preferential route you will need to remove it because all other protcols are higher ADs meaning less trusted and will not be selected first.
+
 
 #### Static routing configurations
+----
 - Configure static routes
 ```c
 // ip route <destination subnet> <subnet mask> <next hop> <name = description>
@@ -836,16 +924,9 @@ ip route 10.1.3.12 255.255.255.255 10.3.4.57 100 // 100 administrative distance
 // always verify configuration saved after entry. 
 ```
 
-##### why admin distance?
-- when talking about routing protocols there are default administrative distances. Static routing protocol is a defualt of 1 where OSPF default is 110. So we use AD (administrative distance) to be able the configure a different routing protocol. The trusted protocol with AD is the lower value.
-- So to change the routing protocol from "static routing" to "OSPF" we increase static routing to any value above 110 (OSPF). In the examples of commands above we the last to last values are changing there administrative distance to select the desired routing protocol
 
-Defaults
-- static routing = 1
-- OSPF = 110
-
-#### Static Routing Verification:
-
+#### Static Routing Verification
+----
 To show configured static routes:
 ```c
 show running-config | include ip route
@@ -856,23 +937,28 @@ To show static routes installed in routing table:
 show ip route static
 ```
 
-## L3 Switch Routed interfaces
-- WHAT DO YOU NEED FOR L3 switches to work
-	- #### ***IP routing must be enabled***
-	- ##### multiple SVI's
-- Behaves just like a port on a router
-	- NO sub-interfaces
-- Is not own IP address
-- Doesn't participate in STP
-	- STP = Spanning Tree Protocol -> Look into this!
 
-- have to explicitly say that the L3 interface is not a switchport via:
+### L3 Switch Routed interfaces
+----
+- ##### ***IP routing must be enabled*** to route with a Multi Layer Switch (MLS)
+```c
+ip routing      
+```
+- ##### have to explicitly say that the L3 interface is not a switchport via:
 ```c
 no switchport
 ```
 
-#### L3 Switch Routed Interface Configurations
+- ##### Multiple SVIs
+- Behaves just like a port on a router
+- NO sub-interfaces
+- Is not own IP address
+- Doesn't participate in STP
+	- STP = Spanning Tree Protocol -> Look into this!
 
+
+#### L3 Switch Routed Interface Configurations
+---
 Convert to routed interface
 ```c
 // These two commands go together
@@ -887,7 +973,9 @@ ip address 10.10.1.2 255.255.255.0
 no shutdown
 ```
 
+
 #### L3 Routed interface verification (WILL USE THE MOST)
+----
 [see more about commands here ](obsidian://open?vault=network%20fundementals&file=Commands)
 
 To show all ports' status and IP address:
@@ -905,7 +993,9 @@ To show a single port with physical statistics:
 show interface g0/1
 ```
 
-## Cisco Discovery Protocol
+
+## Cisco Discovery Protocol (CDP)
+----
 - Cisco proprietary
 - Used to help map a network
 - Discover information about neighboring devices
@@ -918,8 +1008,9 @@ show interface g0/1
 - Cisco devices intercept broadcast
 	- Cannot use this on anything other then cisco -> hense the first bullet about being proprietary.
 
-#### CDP Verification:
 
+#### CDP Verification:
+---
 To show a list of all directly connected neighbors:
 ```c
 Show cdp neighbor
@@ -930,13 +1021,16 @@ To show detailed information about neighbors:
 show cdp neighbor detail
 ```
 
-## Link Layer Discovery Protocol (LLDP)
+
+
+### Link Layer Discovery Protocol (LLDP)
+----
 - LLDP
 	- Open source L2 discovery protocol
 	- Must be enabled/running to discover devices
 
-#### LLDP Verification commands:
-
+##### LLDP Verification commands:
+----
 ```c
 show lldp neighbors
 ```
@@ -945,22 +1039,32 @@ show lldp neighbors
 show lldp neighbors detail
 ```
 
-## Internet Control Message Protocol (ICMP)
+
+
+### Internet Control Message Protocol (ICMP) -> PING
+----
 - Ping
+```c
+ping <ip address>
+ping <domain name>        // only when using a dns server to resolve the address
+```
 
-verifcation  needs to go here
+- trace route 
+```c
+trace <ip address>
+```
 
-trace route needs to go here
 
-## Route Summerization:
+
+### Route Summerization
+----
 - Route summerization aka supernetting is the process by which you take 2 or more smaller subnets and combine them into one larger subnet
 - Done to reduce admin overhead
 	- Can black hole unintended traffic
 		- Black holing does not give a error
-		- 
 - Having a smaller router table will help speed up our routing process I& use less system resources
 
-## KEY CONCEPT FOR SUPERNETTING
+#### KEY CONCEPT FOR SUPERNETTING
 - You can combine two subnets if they are continuous (in sequential order) this process is summerizing the route. AKA route summerization.
 	- if you have two seperate subnets that are continuos like so
 		- 192.168.20.0/25 - Host range 0 - 127 (128 hosts) (128 - 2 =126 usable)
@@ -971,33 +1075,41 @@ trace route needs to go here
 
 # Lecture5
 ----
+#### Subject: Spanning tree Lecture
+[back to top](#sections)
 
-Subject: Spanning tree Lecture
 
 ### QUIZ NOTE:
+-----
 What is the command to show all interface status's on any cisco device?
 
 ```c
 show ip interface brief
 ```
 
-when a request it willl record its MAC address on its table and the port number that associates with the MAC address
+when a request it will record its MAC address on its table and the port number that associates with the MAC address
 
-## Packet and Frame review:
-- Frames do NOT have TTL (no loop prevention mechanism like with packets ) < Can cause broadcast storms.
+
+## Packet and Frame review
+----
+- Frames do NOT have TTL (no loop prevention mechanism like with packets) < Can cause broadcast storms.
 
 ![[20230417_101159.jpg]]
 
 LOOP CAUSES STORM:
 ![[20230417_101220.jpg]]
 
-## Spanning tree protocol (STP -> Layer2)
+
+### Spanning tree protocol (STP -> Layer2)
+----
 - Layer 2 protocol
 - purpose: to prevent Layer2 Loops (broadcast storms)
 - Method: logically block redundant links
 -  STP -> build loop-free logical topologies for our network
 
+
 #### How does stp work?
+----
 - First, a root bridge must be elected -> Root bridge = King/Queen of topology
 	- **Root bridge** = Swtich with the lowest BID
 		- root bridge means it makes all decisions on what ports are open and which ones are blocked. Remember this is all to prevent broadcast storms. That is all.
@@ -1012,7 +1124,9 @@ LOOP CAUSES STORM:
 		- This number we can influence to make the root what we want.
 			- setting the priority to "0" will garuentee that switch becomes our root bridge.
 
-#### STP Root Election:
+
+### STP Root Election
+----
 - To determine the root bridge, ALL switches will send out BPDUs
 	- untill each 
 - BPDU - Bridge Protocol Data Unit
@@ -1026,7 +1140,9 @@ LOOP CAUSES STORM:
 ![[20230417_111145 1.jpg]]
 Root bridge is the switch on the lower right. -> Lowest BID number.
 
-#### STP Port Roles (for determining what ports are blocked or deticated)
+
+### STP Port Roles (for determining what ports are blocked or deticated)
+----
 - Root Port
 	- Basically a tie breaking mechanism ( if port path cost ties the other port path cost, it will then compare port BIDs if they are the same it will compared the port ID to determine Root port )
 	- ##### Lead to root bridge
@@ -1051,9 +1167,12 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 ![[20230417_104900.jpg]]
 
 ![[20230417_110012 (2).jpg]]
-- ####  STP Port Speed Costs
-	- Faster link is the LOWER link cost.
-	- standard numeric values 
+ 
+ 
+###  STP Port Speed Costs
+----
+- Faster link is the LOWER link cost.
+- standard numeric values 
 |SPEED|STP PORT COST|
 |---|---|
 |10 mbps|100|
@@ -1062,9 +1181,11 @@ Root bridge is the switch on the lower right. -> Lowest BID number.
 |10 gbps|2|
 |10+gbps|1|
 
-[![[20230417_111145.jpg]]
+![[20230417_111145.jpg]]
 
-#### STP Port States: (ALL PORTS GO THROUGH THESE PHASES)
+
+### STP Port States: (ALL PORTS GO THROUGH THESE PHASES)
+---
 Blocked (20s)  
     - Blocked port, but able to receive BPDUs -> still up for redundancy    - Stable state listening for BPDUs/ does not forward Data  
 - Listening (15s)  
@@ -1079,7 +1200,9 @@ Blocked (20s)
 	
 - WE CAN SKIP THE 50 SECONDS THIS PROCESS TAKES BY PROGRAMMING OUR PORTS TO SKIP BLOCKED, LEARNING, AND LISTEN PHASE. - Spanning tree Portfast
 
+
 ### Newer Versions of STP
+---
 - Rapid Spanning Tree (RSTP)
 	- Newer port roles and states
 	- combines Listening and Blocking states into one state called "discarding state" (saves 20s)
@@ -1092,7 +1215,9 @@ Blocked (20s)
 MULTI SPANNING TREE 
 - RPVST+
 
+
 ### STP Port Extention: (ONLY ON ACCESS PORTS)
+---
 - portfast is an extention of the STP protocol and not the STP its self.
 - "Access" ports only 
 - Spanning Tree Portfast
@@ -1128,16 +1253,18 @@ int g0/0
 spanning-tree bpduguard enable
 ```
 
+
 # Lecture6
 ----
+#### Subject:  EIGRP
 [back to top](#sections)
-
-### Subject:  EIGRP
 
 Glossary: 
 - Redistribute -> share IP networks with neighbors
 
-## Dynamic Routing
+
+### Dynamic Routing
+---
  - Allows network topologies to dynamically adjust to changing network conditions.
 - pros:
 	- Full redundancy
@@ -1148,18 +1275,22 @@ Glossary:
 	- Less control
 	- More complex
 
-#### Dynamic Protocols
+
+### Dynamic Protocols
+---
 - EIGRP -> Enahnced Interior Gateway Routing Protocol
 	- cisco proprietary
 - OSPF -> Open Shortest Path First
 	- open source
 - BGP -> Border Gateway Protocol
 
-### Dynamic routing types:
 
-## TEST Question:
+### Dynamic routing types
+---
+### TEST Question:
 EIGRP = Distance Vector
 OSPF = Link-State
+BGP = Path Vector
 
 1. Distance Vector -> EIGRP USES THIS
 	- Distance (length) + Vector (direction)
@@ -1171,9 +1302,10 @@ OSPF = Link-State
 	- Complete knowledge of network
 		- Meaning that a device operating with a link-state protocol will build a full topology of the network. 
 
-## EIGRP: 
+### EIGRP
+---
 - Enhanced interior Gateway Routing Protocol
-- ### Distance vector protocol
+- #### Distance vector protocol
 - utilizes autonomous System numbers (AS numbers, ASNs)
 	- AS: Globally unique identifiers, Allows the autonomous system to exchange routing info. 
 	- ##### Each instance must have matching the AS numbers. 
@@ -1203,9 +1335,9 @@ OSPF = Link-State
 		-  route stored in routing table if best route is down.
 
 
-## Network Statements:
+## Network Statements
+----
 [network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
-
 - Tells EIGPR 3 things
 	- Which interfaces to accept traffic in
 		- Tells which interface to accept routing protocol packets (hello messages)
@@ -1219,9 +1351,11 @@ OSPF = Link-State
 network 10.2.29.208 0.0.0.255
 ```
 
-##### NETWORK STATEMENTS TELL WHICH INTERFACES CAN SEND AND RECEIVE TRAFFIC
+##### TEST-> NETWORK STATEMENTS TELL WHICH INTERFACES CAN SEND AND RECEIVE TRAFFIC
 
-#### EIGPR NEIGHBORS: 
+
+### EIGPR NEIGHBORS
+---
 - Connected L3 devices that share their routes with each other
 - #### Relationship is formed through matching network statement
 - Parameters that MUST match:
@@ -1231,8 +1365,9 @@ network 10.2.29.208 0.0.0.255
 - if parameters do NOT match:
 	- No neighbor relationship is formed
 
-### EIGRP CONFIG
 
+#### EIGRP CONFIG
+----
 Create the EIGRP process:
 ```c
 router eigrp 50  // 50 = AS, ASN number
@@ -1244,15 +1379,18 @@ network 10.2.2.2 0.0.0.3    // some port
 network 10.1.1.1 0.0.0.255  // some other port not on same network above  
 ```
 
-### PASSIVE INTERFACES:
+
+### PASSIVE INTERFACES
+----
 - Interfaces you do NOT want to form neighbors on
 - If you write a network statement containing the subnet of the passive interface:
 	- Interface subnet will still be added to the EIGRP topology table 
 	- Interface will NOT send "Hellos"
 - You explicitly program the interfaces on layer 3 that connect layer 2 devices  because we do not wish to send hello broadcasts to the layer2 devices.
 
-#### Passive interface configurations:
 
+#### Passive interface configurations
+---
 SINGLE interface:
 ```c
 router eigrp <XX>
@@ -1269,6 +1407,7 @@ no passive-interface g0/3
 
 
 ### EIGRP Default Route Configuration
+----
 - Default route must already be in the routing table
 
 To redistribute: -> share IPs with neighbors
@@ -1284,7 +1423,8 @@ redistribute connected    // adds all port configured IPs to topology.
 ```
 
 
-### REDISTRIBUTIONS:
+### REDISTRIBUTIONS
+----
 1. REDISTRIBUTION:
 	- Advertise routes learned from different sources of the SAME protocol
 	- sharing routes between the same protocol
@@ -1299,7 +1439,9 @@ Mutual Redistribution -> between different protocol
 
 ![[mutualRedistribution.jpg]]
 
-#### EIGRP REDISTRIBUTION CONFIGURATIONS:
+
+#### EIGRP REDISTRIBUTION CONFIGURATIONS
+----
 - First default metric must be set for redistribution
 
 Create default metrics:
@@ -1320,8 +1462,9 @@ Redistribute OSPF 10 into EIGRP:
 redistribute ospf 10
 ```
 
-#### EIGRP REDISTRIBUTION VERIFICATION:
 
+#### EIGRP REDISTRIBUTION VERIFICATION
+----
 To show EIGRP neighbor table:
 ```c
 show ip eigrp neighbors
@@ -1353,6 +1496,7 @@ show ip protocols         // VERY USEFULL FOR NETWORK DISCOVERY
 
 # Lecture7
 ----
+### Subject: OSPF
 [back to top](#sections)
 
 QUIZ:
@@ -1361,17 +1505,18 @@ QUIZ:
 redistributed connected subnets
 ```
 
-### NOTE: 
+### NOTE
+----
 - Satic routes have a lower default Admin distance (AD). If you do not pay attention the router will send data down lines with a higher cost instead of the shortest path. 
 	- Static routes = 1
 	- ospf =110
 Need to configure the AD on the statics to be higher then the protocol desired.
 
-### Subject: OSPF
-
 [CHEAT SHEET](https://packetlife.net/media/library/10/OSPF.pdf)
 
-### Open Shortest Path:
+
+### Open Shortest Path
+---
 - #### Link-state protocol 
 	- builds entire image of topology. Does not rely on a rumor from a neighbor.
 - OSPF process ID
@@ -1381,14 +1526,18 @@ Need to configure the AD on the statics to be higher then the protocol desired.
 - Each router calculates best path for data based on the complete knowledge of the network.
 	- uses -> dijkstra's algorithm
 
+
 ### OSPF AREAS
+----
 - Segment into routing hierarchy
 - Limit impact of network changes
 - Area 0 (aka "backbone area")
 	- Must exist
 	- #### All other areas must attach to Area 0
 
+
 ### OSPF Router Types
+----
 ![[20230420_114518.jpg]]
 - INTERNAL
 	- Has an interface in a single area
@@ -1401,9 +1550,10 @@ Need to configure the AD on the statics to be higher then the protocol desired.
 	- Device which connects routers from another AS
 	- meaning a router that in between two different protocols as well as areas.
 
-### Network Statements
-[network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
 
+### Network Statements
+----
+- [network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
 - This is a line of code we need to figure out and add to the interface of the router.
 - Tells OSPF 3 things:
 	- Which interfaces to accept traffic in
@@ -1428,7 +1578,9 @@ Need to configure the AD on the statics to be higher then the protocol desired.
 network 10.1.2.3 0.0.0.255 area 0
 ```
 
+
 ### OSPF Neighbors (LAYER 3)
+---
 - Connected **L3 devices** that share their routes with each other 
 - Relationship is formed through matching network statements
 - Parameters that MUST match:
@@ -1444,8 +1596,9 @@ QUIZ -> Asks to have ALL routers communicating over ospf how can we have a summe
 
 QUIZ -> how to summerize all SVI's? -> REDISTRIBUTE CONNECTED SUBNETS
 
-### OSPF CONFIGURATION:
 
+### OSPF configuration
+---
 Create OSPF process:
 ```c
 router ospf <locally significant number/arbitrary but should match>
@@ -1458,7 +1611,9 @@ network 10.2.2.2 0.0.0.3 area 1
 network 10.1.2.3 0.0.0.0 area 1
 ```
 
-### OSPF Database:
+
+### OSPF Database
+----
 - Collection of all the LSAs for an area (Link state advertisments)
 	- Link state advertisements
 	- how routers tell the other router about the routes it knows of. 
@@ -1469,19 +1624,22 @@ network 10.1.2.3 0.0.0.0 area 1
 	- Each router has complete copy
 	- ABRs have a database for each area
 
-### Passive Interfaces:
+
+### Passive Interfaces
+----
 - Interfaces you do NOT want to form neighbors on
 - If you write a network statement containing the subnet of the passive interface:
 	- Interface subnet will still be added to the OSPF database
 	- Interface will NOT send "Hellos"
 
-#### QUIZ -> If You were asked what are some RESTRICTIONS you can put on an interface for OSPF -> 
+##### QUIZ -> If You were asked what are some RESTRICTIONS you can put on an interface for OSPF -> 
 ```c
 passive-interface <port #>
 ```
 
-### Passive-interface Configurations:
 
+### Passive-interface Configurations:
+----
 Single interfaces:
 ```c
 router ospf <XX>
@@ -1500,7 +1658,9 @@ passive-interface default
 no passive-interface <port #>     
 ```
 
-##### OSPF Default information:
+
+##### OSPF Default information configuration
+----
 - Must have default route in routing table
 	- Learned via static, BGP, EIGRP, etc.
 - Default route injected as Type-5 LSA
@@ -1513,7 +1673,9 @@ router <XX>
 default-information originate    // Shares you default route to other routers.
 ```
 
-##### Redistrubution configuration:
+
+#### Redistrubution configuration
+----
 - Use "subnets" keyword
 
 Redistribute connected routes into OSPF:
@@ -1534,8 +1696,10 @@ router ospf <XX>
 redistribute eigrp 75 subnets
 ```
 
-### LINK STATE ADVERTISEMENTS
 
+
+### LINK STATE ADVERTISEMENT (LSA)
+---
 intra = inside
 inter = between
 
@@ -1555,7 +1719,9 @@ inter = between
 	- A route imported into the OSPF domain
 	- created by ASBR to advertise networks from a different AS (ASN) 
 
-### OSPF Path Selection:
+
+### OSPF Path Selection
+---
 - Best path calculation
 	- Cumulative cost to destination
 	- Each link between routers has a specific route
@@ -1570,8 +1736,9 @@ inter = between
 	- External
 		- Destination is external to OSPF
 
-### OSPF VERIFICATIONS:
 
+#### OSPF VERIFICATIONS
+----
 rib = routing information base
 
 TO show OSPF neighbor status:
@@ -1592,15 +1759,19 @@ show ip ospf rib    // rib = routing information base.
 
 # Lecture8
 ----
+#### Subject: BGP/PAT
 [back to top](#sections)
 
-## Subject: BGP/PAT
 
-#### Prefixes = IP address with associated subnet mask
+#### Prefixes = Is a IP address with its associated subnet mask
+```c
+10.2.2.2 255.255.255.0               // this is technically a prefix
+```
 
-### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
+#### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
-#### BGP
+### BGP
+----
 - Border gateway protocol
 	- Exterior Gateway Protocol
 	- Routing protocol of the internet
@@ -1611,12 +1782,17 @@ show ip ospf rib    // rib = routing information base.
 		- IBGP
 			- internal BGP
 			- requires a full mesh topology. ( all routers must touch all routers = dificult to scale )
-#### PAT
+
+
+### PAT
+---
 - Port Address Translation (PAT)
 	- Translating IP addesses from Private to Public while minimizing Public IP usage.
 	- attaches port numbers to one public IP to make the instance unique. In turn minimizing the number of IPs needed for the entire internet. also allows translation to attach a private IP to the IP & port number for communication.
 
-### BGP
+
+### eBGP
+---
 - exterior Gateway Protocol
 - primary function of BGP is to exchange layer 3 reachability info with other BGP routers
 - Routing protocol of the internet
@@ -1628,9 +1804,10 @@ show ip ospf rib    // rib = routing information base.
 	- calculates best path by the least amount of HOPS from one autonomous system to another (meaning network to network not router to router). It does not take into acoount the cost of the hops.
 
 ![[20230424_103604.jpg]]
-[picture of GBP hops from AS to AS]
 
-### AUTONOMOUS SYSTEM NUMBERS
+
+### AS (Autonomous System Numbers)
+----
 - Each group of routers running BGP will utilize an autonomous system number
 - Valid AS number range 0 - 65,535
 	- 0: Reserved 
@@ -1640,7 +1817,9 @@ show ip ospf rib    // rib = routing information base.
 	- 65,535: Reserved
 - There are 6 different areas in the world that will run a curtain range of these AS numbers. You can find out the area of the world this AS is being used just by referencing this number.
 
+
 ### BGP Table
+---
 - List of "***PREFIXES***" known by BGP
 - "***Prefixes***" shared to peers
 	- Technically, BGP does not announce or share routes. 
@@ -1649,10 +1828,11 @@ show ip ospf rib    // rib = routing information base.
 - Add new routes from routing table
 - "***FILTERING***" routes in BGP we utilize BOTH "***prefix-lists***" & "***route-maps***"
 
-### NETWORK STATEMENTS
-[network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
 
-- Must match an EXACT prefix
+### NETWORK STATEMENTS
+---
+- [network statements in detail](obsidian://open?vault=network%20fundementals&file=Network%20Statements%20in%20Depth)
+- ##### Must match an EXACT prefix
 - add/inject routes to the BGP table from Routing table
 - Doesn't interfere with neighbors like iBGPs
 - NO wildcard logic (subnet mask syntax)
@@ -1663,7 +1843,9 @@ show ip ospf rib    // rib = routing information base.
 	1. Network statements
 	2. Redistribution
 
+
 ### ADVERTISE SUMMARY NETWORKS
+----
 - ##### Exact prefixes must exist in routing table
 	- use a null route
 		- null route is a "fake" route that we use to add summarized networks to our routing table for BGP to ensure that the exact prefix is in the routing table.
@@ -1680,7 +1862,9 @@ show ip ospf rib    // rib = routing information base.
 SIDE NOTE: 
 - In order to get the advertised summary onto the BGP table all prefixes and summaries must be inside the routing table. To get our summary into the routing table and not mess up the "Longest match rule" we can add the prefix summary into the routing table by using the `ip route` syntax but then attach the null0 at the end to ensure it will never match inside as a viable route but will still be entered into the BGP table
 
+
 ### BGP NEIGHBORS
+---
 - Manually configured, Not dynamically discovered
 - Same AS number = iBGP
 - Different AS number = eBGP 
@@ -1709,7 +1893,9 @@ SIDE NOTE:
 	nieghbor 10.1.2.4 remote-as 65505
 	```
 
+
 ### MUTUAL REDISTRIBUTION
+----
 - Advertise routes learned from different sources on same router
 [picture of mutual redistribution]
 - When a single router operating with 2 or more dynamic routing protocol redistributes routes between the separate dynamic protocols
@@ -1718,7 +1904,9 @@ router ospf 10
 redistribute bgp 50
 ```
 
+
 ### eBPG vs. iBGP
+----
 - External BGP (eBGP)  
     - Outside the same AS -> different network to different network  
     - BGP peering between routers in different AS  
@@ -1733,8 +1921,9 @@ redistribute bgp 50
     - Full mesh requirements        - each router has a wire going to each router.  
         - full mesh -> "split horizon rule" requires a full mesh
 
-### CONFIGURATIONS:
 
+#### BGP Configurations
+---
 Create BGP process:
 ```c
 router bgp <65501>
@@ -1761,8 +1950,9 @@ redistribute OSPF into bgp:
 redistribute ospf <175>   // redistribute ospf <OSPF PID>
 ```
 
-#### VERIFICATIONS:
 
+#### BGP Verifications
+----
 To view the BGP table:
 ```c
 show ip bgp
@@ -1804,7 +1994,9 @@ To view routes being sent to neighbor:
 show ip bgp neighbor [x.x.x.x] advertised-routes
 ```
 
+
 ### NETWORK ADDRESS TRANSLATION (NAT)
+----
 - NAT allows a host that does not have a valid, registered, globally unique IP address to communicate with other hosts through the internet.
 - NAT achieves its goal by using a valid registered IP address to represent the private address to the rest of the internet.
 
@@ -1815,7 +2007,9 @@ show ip bgp neighbor [x.x.x.x] advertised-routes
 
 ### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
+
 ### (Overlaod) PAT
+---
 - Overloading NAT with "***Port Address Translation***"
 - When PAT creates the dynamic mapping, it selects not only an inside global IP address but also a unique port number to use with that address
 - The NAT router keeps a NAT table entry for every unique combination of inside local IP address and port, with translation to the inside global address and a unique port number assiciated with the inside global address
@@ -1829,7 +2023,9 @@ show ip nat statistics
 
 ![[20230424_132019.jpg]]
 
-##### (OVERLOAD) PAT cont. CONFIGURATIONS
+
+##### (OVERLOAD) PAT CONFIGURATIONS
+----
 ```c
 interface GigabitEthernet0/0
 ip address 10.1.1.3 255.255.255.0
@@ -1846,7 +2042,7 @@ access-list 1 permit 10.1.1.1
 
 // here is a invisable Denial. it is like an else statement in coding. If access-list 1 is not there then access-list 2 and if those fail the request is denied.
 ```
-### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
+##### NOTE: Any interface you wish to access from any outside network must be explicitly labeled as `ip nat inside` in order to trigger the NAT an allow communication.
 
 Reverse NAT setup
 
@@ -1857,7 +2053,9 @@ ip nat pool OUTSIDE 10.2.12.249 10.2.12.254 netmask 255.255.255.248
 ip nat outside source list 1 pool OUTSIDE add-route  
 ```
 
+
 #### NAT VERIFICATIONS
+----
 To see current ip address translations
 ```c
 show ip nat translations
@@ -1871,9 +2069,8 @@ show ip nat statistics
 
 # Lecture9
 ----
-[back to top](#sections)
-
 ### SUBJECT: Redundancy
+[back to top](#sections)
 
 #### TEST -> where does IP helper go -> In the default gateway 
 
@@ -1882,7 +2079,9 @@ show ip nat statistics
 - HSRP
 - DHCP
 
+
 ### Port Channels (aka Etherchannel)
+---
 - Purpose 
 	- Bundle many physical links into one logical link
 		- ##### port-channel bundles physical links into a channel-group to create a single logical link that provides the aggregate bandwidth.
@@ -1895,7 +2094,10 @@ show ip nat statistics
 - Speed cannot exceed max speed of single link
 - "**Etherchannel**" aggregate the traffic across all available active ports in the channel. Meaning it sends traffic evenly across the ports rather then sending many packets down only one line of the port-channel
 ![[20230427_100016 1.jpg]]
+
+
 ### Bundling ports
+----
 - Manual
 	- Mode "on"
 	- Forces port into etherchannel (risk of broadcast storms)
@@ -1910,17 +2112,18 @@ show ip nat statistics
 	- LACP mode "passive"
 		- Only responds to negotiation
 
+
 ### Port-Channel Configuration Overview
+----
 - Configure the logical port-channel
 - Configure the physical interfaces
 	- Bind the interfaces to the port-channel
 
+
 ### Port-Channel CONFIGURATIONS:
+----
+##### TEST: `channel-group <##(arbitrary)> mode <active/passive>` is the actual command that binds the group to the interface
 
-#### TEST: `channel-group <##(arbitrary)> mode <active/passive>` is the actual command that binds the group to the interface
-
-
-##### CONFIGURATION:
 Set up the local port-channel
 ```c
 // setting up the interface 
@@ -1941,7 +2144,9 @@ switchport trunk allowed vlan <##,##>
 channel-group <##(arbitrary)> mode <active/passive>
 ```
 
-##### VERIFICATIONS:
+
+##### VERIFICATIONS
+----
 To verify the port-channel status: (JUST CHEKS FOR UP UP STATE)
 ```c
 show ip interface brief
@@ -1952,7 +2157,10 @@ To list the state of each individual member: (THIS WILL BE MOST USED)
 show etherchannel summary
 ```
 
+
+
 ### First Hop Redundancy Protocols
+----
 - ##### THESE PROTOCOLS ARE ONLY NEEDED WHERE THERE ARE DEFUALT GATEWAYS
 - Type of protocol, not a specific protocol
 - ###### Provides gateway/next-hop redundancy
@@ -1969,8 +2177,14 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 [picture about ralationship between the master switch and the slave]
 [difference between HSRP and VRRP (redundancy protocols)]
 
+
 ### Types of First Hop Redundancy Protocols
-##### Hot Standby Router Protocol (HSRP)
+---
+- HSRP
+
+
+### Hot Standby Router Protocol (HSRP)
+----
 - Purpose
 	- Provide gateway redundancy
 	- ***Allow traffic to flow through the redundant route in the event of a device/ link failure
@@ -2012,7 +2226,9 @@ both switches are sending signals to each other every 3 seconds. If the timer ru
 	- Virtual MAC associated with VIP
 	- Active HSRP router will reply to ARPs with this
 
-### HSRP CONFIGURATIONS:
+
+#### HSRP CONFIGURATIONS
+----
 Switch 1 SVI
 ```c
 // Master L3 switch/router
@@ -2032,7 +2248,8 @@ standby <X> priority <Needs to be a lower priority>
 // NO PREEMPT ON SLAVE
 ```
 
-##### HSRP Verification:
+#### HSRP Verification:
+----
 To list all HSRP groups
 ```c 
 // will show "P" if preempt -> should only be on higher priority
@@ -2048,7 +2265,9 @@ show standby vlan <vlan ID>
 
 ![[20230427_104931.jpg]]
 
+
 ### Dynamic Host Configuration Protocol (DHCP)
+----
 - Purpose:
 	- Dynamically assign an IP address, default gateway, and DNS server to hosts instead of having to do this manually for each host.
 	- Easy IP address management at scale
@@ -2059,7 +2278,9 @@ show standby vlan <vlan ID>
 
 - ##### DHCP Does not give out IP addresses it "***LEASES***" them. There is a timer for how long a IP is given to a end point. The timer is up to the engineers discression. 
 
+
 ### DHCP Participants
+---
 - Client
 	- Device requesting IP and gateway
 - Relay Agent
@@ -2075,7 +2296,9 @@ show standby vlan <vlan ID>
 NOTE: If we have a loopback on a router using DHCP we do not want it to participate in DHCP so we will have to explicitly EXCLUDE that interface from DHCP. This is ONLY the case if the IP might fall under the subnet of the POOL. 
 EX: A pool of 10.0.0.0 255.255.255.0 with a loopback of 10.2.2.2 255.255.255.255 will not need to be EXCLUDED because it will not ever be "black holed into pool"
 
+
 ### DHCP Components
+----
 - DHCP Service
 	- Enables DHCP on a router ("service DHCP")
 - DHCP pool
@@ -2090,15 +2313,18 @@ EX: A pool of 10.0.0.0 255.255.255.0 with a loopback of 10.2.2.2 255.255.255.255
 
 WE WILL NOT "EXCLUDE" THE LOOP BACK BECAUSE IT DOES NOT FALL INTO THE DHCP POOL IN THE ABOVE EXAMPLE
 
-### Request process
+
+### Request process (DORA)
+----
+https://www.youtube.com/watch?v=b_9Dg0QYJUg
 1. discover
 2. offer
 3. request
 4. acknowledge
 
-### DHCP Configurations:
 
-##### CONFIGS
+#### DHCP Configurations:
+---
 Enable the DHCP service:
 ```c
 service dhcp
@@ -2125,7 +2351,9 @@ IP helper Address Config
 ip helper-address <10.100.0.1>
 ```
 
+
 ##### DHCP VERIFICATIONS:
+----
 To list current DHCP leased addresses:
 ```c
 show ip dhcp binding
@@ -2135,6 +2363,7 @@ To list configured DHCP pools:
 ```c
 show ip dhcp pool
 ```
+
 
 
 # Lecture10

@@ -2,9 +2,11 @@
 -----
 [AS (Autonomous System Number)](#as%20(autonomous%20system%20number))
 [Auto-Negotiation](#auto-negotiation)
+[Multicast](#multicast)
 [Route-map](#route-map)
 [Router-on-a-stick](#router-on-a-stick)
 [Port Channel](#port%20channel)
+[Unicast](#unicast)
 
 ### AS (Autonomous System Number)
 ----
@@ -30,6 +32,15 @@ Auto negotiation is a communication protocol used by network devices, such as co
 When two devices are connected, they send signals to each other to determine the highest speed and best duplex mode they both support. Once they have agreed on the optimal settings, they establish a connection and begin to communicate.
 
 Auto negotiation is an important feature because it eliminates the need for manual configuration of network settings, which can be time-consuming and error-prone. Additionally, it ensures that the devices are using the most efficient settings for their communication, which can improve network performance and reduce errors.
+
+[back to top](#top)
+### Multicast
+----
+
+[Multicast Vs Unicast](obsidian://open?vault=network%20fundementals&file=Network%20Fundamentals%2FNetwork%20Fundementals%2FExtraContent%2FMulticast%20VS%20unicast)
+Multicast is a one-to-many communication model, where data is sent from a single sender to multiple receivers. In this model, the sender sends a message to a multicast IP address, and the message is delivered to all devices that have joined that multicast group. 
+
+Multicast is often used for applications such as video streaming, where multiple users may want to receive the same data simultaneously. Unicast, on the other hand, is used for applications such as web browsing or email, where data is sent to a specific recipient. 
 
 [back to top](#top)
 ### Route-map
@@ -61,3 +72,10 @@ Port channels are commonly used in datacenter networks, where a large amount of 
 Port channeling is supported by many network devices and can be configured in various ways, including static channeling (where the administrator manually configures the set of member links) and dynamic channeling (where the switch automatically negotiates the addition and removal of member links). 
 
 Overall, port-channels are a simple and effective way to increase bandwidth, redundancy, and availability in network infrastructures.
+
+[back to top](#top)
+# Unicast
+---
+
+[Multicast Vs Unicast](obsidian://open?vault=network%20fundementals&file=Network%20Fundamentals%2FNetwork%20Fundementals%2FExtraContent%2FMulticast%20VS%20unicast)
+Unicast is a one-to-one communication model, where data is sent from a single sender to a single receiver. In this model, the sender sends a message to a specific IP address, and the message is delivered only to the device with that IP address. 

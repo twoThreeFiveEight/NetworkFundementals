@@ -807,14 +807,14 @@ show ip dhcp pool
 
 ### ALL VERIFICATIONS
 -----
-[back to top](#sections)
+[back to tophow(#sections)
 
 VERIFICATIONS:
  ```c
     //Layer 2 Verification Commands
     show interfaces
     show interfaces status
-    show mac-address-table
+    show mac address-table
     show interface switchport
     show interface trunk
     show arp
@@ -824,6 +824,7 @@ VERIFICATIONS:
     show spanning-tree
     show cdp neighbors
     show vlan brief
+    show int irb // itegrated routing and bridging
     
     //Layer 3 Verification Commands
     show interface
@@ -973,7 +974,7 @@ Windows: Get-DhcpServerv4Lease
 ifconfig
 
 # Show and modify IP addresses, routes, and other network configuration settings
-ip address show
+ip address showip 
 ip route show
 
 # Send ICMP echo requests to a specified destination IP address to test network connectivity
