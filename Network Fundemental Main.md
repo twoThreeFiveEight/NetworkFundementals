@@ -1875,7 +1875,10 @@ SIDE NOTE:
 	- Open Sent - Open message sent
 	- Open Confirm = Response Received
 	- Established - Adjacency Established
+
+
 ##### BGP NEIGHBOR STATEMENTS
+----
 - Need one for each neighbor
 - Specifies the IP address and AS number of a peer
 - Peer must have mirror statement
@@ -2248,6 +2251,7 @@ standby <X> priority <Needs to be a lower priority>
 // NO PREEMPT ON SLAVE
 ```
 
+
 #### HSRP Verification:
 ----
 To list all HSRP groups
@@ -2365,19 +2369,18 @@ show ip dhcp pool
 ```
 
 
-
 # Lecture10
 ----
-[back to top](#sections)
-
 ### Subject: Filtering
-
+[back to top](#sections)
 [Prefix list in detail](obsidian://open?vault=network%20fundementals&file=Prefix%20List%20in%20Detail)
 
 ##### TOPICS:
 - Prefix Lists
 
-## GBP route Filtering
+
+### GBP route Filtering
+-----
 - Control route advertisements
 - Filters are applied to neighbors
 - Filters may be used by multiple peers
@@ -2390,7 +2393,9 @@ show ip dhcp pool
 	- Route-maps
 		- Remember - "***FILTERING***" routes in BGP we utilize BOTH "***prefix-lists***" & "***route-maps***"
 
-## Prefix List & Route Maps
+
+### Prefix List & Route Maps
+----
 - Prefix Lists
 	- Match exact prefixes
 		- If we have a network that does not match exactly to the prefix list we added to the route map that we want to advertise then we will have an issue because it will pass the filter and end up being implicitly denied. So we need to Match that network and Subnet EXACTLY as it shows up to avoid this issue.
@@ -2399,7 +2404,9 @@ show ip dhcp pool
 	- Match other route attributes
 		- EX: metric, next-hop, route-source, route-type, etc.
 
-## Direction of Filtering
+
+### Direction of Filtering
+---
 - #### Relative to local router
 - Inbound
 	- Filtering advertisements received from peer (Computer we are isolating) 
@@ -2408,7 +2415,9 @@ show ip dhcp pool
 	- Filtering advertisements sent to a peer  (Computer we are isolating)
 	- BGP table gets filtered 
 
-## Soft-Reconfiguration Inbound
+
+### Soft-Reconfiguration Inbound
+---
 - Buffer to store complete advertisement from peer
 	- Basically stores a copy of the data flowing through, so we can compare what went through the filter compared to how the ilter actually filtered
 - All routes received from peer before filtering
@@ -2422,12 +2431,16 @@ Show routes from peer before filtering:
 show ip bgp neighbor 10.1.1.1 received-routes
 ```
 
-## Prefix Lists
+
+### Prefix Lists
+----
 - Similar to Named ACLs
 - Matches Prefixes, not IP addresses
 - #### Implicit deny any -> AT THE END OF EVERY PREFIX LIST (TEST)
 
-## Prefix List Configuration
+
+### Prefix List Configuration
+----
 - Create the prefix list:
 ```c
 // always add a sequence number and ALLOWS GIVE YOUR SELF SPACE INBETWEEN SEQ #
@@ -2443,7 +2456,9 @@ router bgp 6501
 neighbor 10.37.51.66 prefix-list MyPreFixList in
 ```
 
-## Prefix List Verification:
+
+### Prefix List Verification
+---
 - To list all prefix lists:
 ```c
 show ip prefix-list
@@ -2457,7 +2472,9 @@ show ip prefix-list MyPrefixList   //  <- MyPreFixeList is the name of list
 show running-config | section ip prefix-list
 ```
 
-## Route Maps
+
+### Route Maps
+----
 - Nested structure
 	- Route map entry
 	- Match statement
@@ -2469,8 +2486,9 @@ show running-config | section ip prefix-list
 - Example of what we can do:
 	- only advertise EIGRP routes to neighbor change the next hop address
 
-## Route Map Configurations
 
+### Route Map Configurations
+----
 ##### Create a Prefix list to match
 
 Create a route map to filter based on prefix list:
@@ -2504,8 +2522,9 @@ neighbor 10.1.1.2 route-map MyRouteMap1 out
 nieghbor 10.1.1.2 route-map MyRouteMap2 in
 ```
 
-## Route Map Verification:
 
+### Route Map Verification:
+---
 To show all route maps
 ```c
 show route-map
@@ -2516,7 +2535,9 @@ To show a specific route map:
 show route-map MyRouteMap1
 ```
 
-## BGP Route Filtering Verification:
+
+### BGP Route Filtering Verification
+----
 - ##### NEED TO HAVE SET SOFT-CONFIGURATION PRIOR TO THESE COMMANDS
 
 To show routes from a peer BEFORE filters:
@@ -2534,7 +2555,9 @@ To show routes being sent to a peer after filtering:
 show ip bgp neighbor 10.1.1.2 advertised-routes
 ```
 
-## Access Control Lists (ACLs)
+
+### Access Control Lists (ACLs)
+---
 - Generic list of permit and deny statemetns
 - Used as basic security for networks
 - identify interesting traffic for another process
@@ -2545,7 +2568,9 @@ show ip bgp neighbor 10.1.1.2 advertised-routes
 		- Control VTY access -> remote access control
 - Access lists perform packet filtering to control which packets move through the network and where
 
-## ACL Types
+
+### ACL Types
+---
 - Standard ACL
 	- ACL number 1 - 99 and 1300 - 1999
 	- ##### Matches only the source IP address (TEST)
@@ -2557,18 +2582,23 @@ show ip bgp neighbor 10.1.1.2 advertised-routes
 		- The source IP address
 		- The destination 
 
-## ACL Processing
+
+### ACL Processing
+----
 - ###### Each line is processed sequentially; top-down
 - ##### if a line matches, stop processing
 - ##### Implicit "deny any" at the end of all ACLS (TEST)
 
 
-## Configuring ACLs
+### Configuring ACLs
+----
 - First ACL entry creates the ACL Subsequent lines added to the end of the list
 - Deleting the ACL will delete the entire list of entries <- IMPORTANT
 - To re-order the list, delete lines by sequence numbers and reapply with new sequence numbers
 
-## ACL Traffic Filtering
+
+### ACL Traffic Filtering
+---
 - Applied to an interface
 	- One ACL per interface, per direction
 - Inbound
@@ -2576,8 +2606,9 @@ show ip bgp neighbor 10.1.1.2 advertised-routes
 - Outbound
 	- Filters traffic before transmitting out of an interface
 
-### ACL Configuration
 
+### ACL Configuration
+---
 ##### Standard ACL type Config
 To define a standard ACL:
 ```c
@@ -2607,8 +2638,9 @@ interface g0/0
 ip access-group 101 in
 ```
 
-## ACL Verification
 
+### ACL Verification
+----
 To list all ACL entries:
 ```c
 show access-lists
@@ -2624,14 +2656,17 @@ To check if an ACL is applied to an interface:
 show ip interface g0/0
 ```
 
-## Named ACLs
+
+### Named ACLs
+----
 - Processed like a numbered ACL
 - Identified by text name -Case Sensitive
 - Easier to manage 
 	- Sequence numbers allow for modificaiton of single ACL entries
 
-## Named ACL Configurtation:
 
+### Named ACL Configurtation
+---
 To create a named ACL:
 ```c
 ip access-list standard <MyACL>
@@ -2651,7 +2686,9 @@ To delete entire ACL:
 no ip access-list standard MyACL
 ```
 
+
 ### Determining what TYPE the ACL is. (standard/ extended)
+---
 
 ```c
 // For this example we are assuming these are seperate ACLs all we are anylising only the identification of the TYPEs
@@ -2666,11 +2703,12 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 
 # Lecture11
 ----
+### Subject: IPsec/Tunneling 
 [back to top](#sections)
 
-### Subject: IPsec/Tunneling 
 
 ### In this Lecture
+---
 - Network Address Translation
 	- Static 1-1
 	- Dynamic NAT
@@ -2680,23 +2718,28 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 	- Encrypted
 - Set of Standards & protocols that support secure communication as packet are transported across network boundries
 
+
 ### NAT Referesher
+---
 - NAT allows a host that does not have a valid, registered, globally unique IP address to communicate with other hosts through the internet.
 - NAT achieves its goal by using a valid registered IP address to represent the private address to the rest of the Internet.
 	- Recorded in out NAT table
-
-### NAT Refresher 
 - The NAT function changes the private IP addresses to Publicly registered IP address inside each IP packet
 
 ![[Screenshot (54).png]]
 
+
+
 ### Static NAT
+---
 - Static NAT - A One-to-One mapping
 - Requires one public address for each private address that needs to be translated
 
 ![[Screenshot (52).png]]
 
+
 ### Dynamic NAT
+----
 - Dynamic NAT
 - Like static NAT, the NAT router creates a one-to-one mapping between an inside local and inside global address and changes the IP addresses in packets as they exit and enter the inside network
 - However, the mapping of an inside local address to an inside global address happens dynamically.
@@ -2705,7 +2748,9 @@ Extened b/c the "120" -> ip access-list 120 permit tcp 10.2.xx.8 0.0.0.255
 
 ![[Screenshot (53).png]]
 
+
 ### Static NAT
+----
 CONFIGS:
 ```c 
 interface g0/0
@@ -2721,7 +2766,9 @@ ip nat inside source static <IP> <public IP>
 ip nat inside source static <IP> <public IP>  
 ```
 
+
 ### Dynamic NAT
+----
 CONFIGS:
 ```c
 interface g0/0
@@ -2739,7 +2786,9 @@ ip nat pool <fred> 200.1.1.1 200.1.1.2 netmask 255.255.255.252
 ip nat inside source list <1> pool <fred> 
 ```
 
+
 ### IPsec Tunnels
+----
 - Tunnels create a logical point to point connection between 2 devices that are not directly connected.
 - This is accomplished by utilizing existing valid routing paths
 	- Overlay/Underlay
@@ -2757,7 +2806,9 @@ ip nat inside source list <1> pool <fred>
 		- You used a IPsec tunnel in your environment.
 		- Tunneling traffic is generally used to allow traffic that is using private addresses to traverse the internet usually in site-to-site capacity. It can also be used during a Merger and Acquisition (M+A) where you might have two networks that use the same IP space, you can use a tunnel to traverse the overlapping network to prevent the need for NAT or complete IP addressing overhaul. You used a IPsec tunnel in your environment.
 
+
 ## IKE Phases 1 (IKE_SA_INIT)
+----
 - Initial tunnel built to manage the second phase
 	- Authenticate IPSEC peers & set up out secure channel
 - Establishes ISAKMP session
@@ -2781,7 +2832,9 @@ ip nat inside source list <1> pool <fred>
 	- Encryption Method 
 Phases of phase 1: -> SA exchange -> Established -> Management Traffic flows
 
+
 ### IKE Phase 2
+----
 - Tunnel encapsulated inside of phase 1 tunnel
 - Data flows through this tunnel from one end point to the other
 - Seperate set of SAs -> MUST MATCH ON BOTH SIDES
@@ -2793,13 +2846,17 @@ Phases of phase 1: -> SA exchange -> Established -> Management Traffic flows
 Phases of phase2: 
 Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
 
+
 ### IKE v1 vs v2
+----
 - V1 uses more bandwidth
 - V2 supports EAP authentication
 - V2 has NAT traversal built in
 - V2 has a built-in keep alive mechanism to keep the tunnel up
 
+
 ### Encryption Types
+----
 - What is encryption?
 	- The process of converting information or data into a code especially to prevent unauthorized access
 - 3 Mehtods of encryption
@@ -2808,7 +2865,9 @@ Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
 	- AES - most Secure
 		- NSA is actively trying to break this encryption method
 
+
 ### Authentication Methods
+---
 - What is Authentication?
 	- Verifyig the devices are who they say they are utilizing either a Preshared Key (PSK) or Certifcate - Verification of Authenticity by the Manufacturer
 - 2 Authentication Mehtods
@@ -2821,7 +2880,9 @@ Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
 		- Can be Secured
 			- Uses same Hashing algorithms as HH but does not only authenticate outer IP header it looks at the IP datagram (data) portion.
 
+
 ### Transport and Tunnel Mode
+---
 - 2 Modes of operation
 	- Transport Mode
 		- Uses the original IP header
@@ -2831,7 +2892,9 @@ Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
 			- DONT BREAK THE INTERNET
 				- DO NOT SEND OUR PRIVATE IPs TO INTERNET NETWORK
 
+
 ### Hashing
+---
 - What is hashing
 	- Hashing is the process of transforming any given key or a string of characters into another value
 	- This is usually represented by a shorter, fixed-length value or key that represents and makes it easier to find or employ the original string
@@ -2842,14 +2905,17 @@ Management Traffic -> Tunnel Init -> Exchange SAs -> Tunnel up -> Traffic Flows
 		- Higher numbers are more secure, but more computationally expensive.
 		- sha256 < sha512
 
+
 ### VTI (virtual Tunnel interface)
+----
 - Logical layer 3 interface
 - Used as endpoint for tunneling protocols
 - Can be statically or dynamically defined
 	- Dynamic is typically used for hub and spoke topologies like in DMVPN
 
-### CONFIGURATIONS:
 
+#### CONFIGURATIONS
+----
 Create ISAKMP Policy (Phase 1)
 ```c
 crypto isakmp policy 1
@@ -2891,8 +2957,9 @@ Create routing to your destination Subnet pointing to the tunnel
 ip route 10.2.29.0 255.255.255.0 tunnel<0>
 ```
 
-### VERIFICATIONS:
 
+#### VERIFICATIONS
+---
 To test reachability and the path taken
 ```c 
 ping/traceroute
@@ -2908,11 +2975,10 @@ show the souce, destination and status of the tunnel
 show crypto isakmp sa
 ```
 
-
 ### Whats the ipsec: TO CREATE A logical peer to peer connection between sites while securing traffic
 
 
-## Side Notes
+### Side Notes
 -----
 [back to top](#sections)
 
