@@ -3,9 +3,8 @@
 ## Question:
 ##### What are network statements telling the protocols? what is the information they provide?
 
-----
-
 ### OSPF
+---
 - In OSPF, the network statement is used to identify the interfaces that belong to the OSPF routing process. The syntax for a network statement in OSPF is as follows:
 
 ```c
@@ -27,6 +26,7 @@ default-information orignated
 ![[Screenshot (59).png]]
 
 ### EIGRP
+----
 - In EIGRP, the network statement is used to identify the networks that should be advertised to other EIGRP routers. The syntax for a network statement in EIGRP is as follows:
 
 ```c
@@ -51,7 +51,7 @@ default-metric 10000 10 255 1 1500
 
 
 ### BGP
-
+---
 network statements in BGP is only for adding routes to the BGP routing table to advertise routes we explicitly wish to advertise.
 
 To create a network statement for BGP, you need to specify the network prefix that you want to advertise to your BGP neighbors. The network statement tells BGP which networks to advertise to its neighbors and is used to control the distribution of routing information in the BGP network. The syntax for a network statement in BGP is as follows:

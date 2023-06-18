@@ -1,0 +1,1 @@
+![[mutualRedistribution.jpg]]
